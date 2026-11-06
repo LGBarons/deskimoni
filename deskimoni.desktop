@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Deskimoni
+GenericName=Schreibtisch-Roboter (Desk Pet)
+Comment=Interaktiver & sprechender Deskimon Desktop-Begleiter für KDE Plasma
+Exec=/home/lgb/Nextcloud_FTH/antigravity_githubs/deskimoni/run.sh
+Icon=/home/lgb/Nextcloud_FTH/antigravity_githubs/deskimoni/deskimoni.svg
+Terminal=false
+Categories=Utility;Amusement;
+Keywords=deskimon;robot;pet;ollama;buddy;
+StartupNotify=false
