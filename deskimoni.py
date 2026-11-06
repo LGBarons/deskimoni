@@ -166,15 +166,95 @@ class RobotSoundEngine:
                 wf.setframerate(sample_rate)
                 wf.writeframes(bytes(frames))
 
-            subprocess.run(
-                ["pw-play", wav_path],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                timeout=4,
-            )
-            os.remove(wav_path)
+            self._play_wav_file(wav_path, timeout=4)
+            try:
+                os.remove(wav_path)
+            except Exception:
+                pass
         except Exception:
             pass
+
+    def _play_wav_file(self, wav_path: str, timeout: int = 5):
+        """Spielt eine WAV-Datei mit dem besten verfügbaren Audio-Tool ab (pw-play, paplay, aplay)."""
+        for tool in ["pw-play", "paplay", "aplay"]:
+            if shutil.which(tool):
+                try:
+                    subprocess.run(
+                        [tool, wav_path],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                        timeout=timeout,
+                    )
+                    return
+                except Exception:
+                    pass
+
+    def play_kwai_whistle(self):
+        """Pfeift die weltberühmte Marsch-Melodie aus 'Die Brücke am Kwai' (Colonel Bogey March)."""
+        threading.Thread(target=self._synth_kwai_whistle_blocking, daemon=True).start()
+
+    def _synth_kwai_whistle_blocking(self):
+        """Synthetisiert die Colonel Bogey March Pfeif-Melodie mit weichem Vibrato und Hüllkurve."""
+        try:
+            sample_rate = 24000
+            notes = [
+                # freq, duration, pause_after
+                (1046.5, 0.32, 0.02),
+                (880.0,  0.42, 0.12),
+                (987.8,  0.16, 0.02),
+                (1046.5, 0.16, 0.02),
+                (1174.7, 0.26, 0.02),
+                (987.8,  0.16, 0.02),
+                (784.0,  0.45, 0.12),
+                (880.0,  0.26, 0.02),
+                (1046.5, 0.18, 0.02),
+                (880.0,  0.50, 0.05),
+            ]
+
+            frames = bytearray()
+            for freq, dur, pause in notes:
+                n_samples = int(sample_rate * dur)
+                for i in range(n_samples):
+                    t = i / sample_rate
+                    vib = 6.0 * math.sin(2 * math.pi * 5.5 * t)
+                    f_inst = freq + vib
+                    att_len = int(sample_rate * 0.02)
+                    dec_len = int(sample_rate * 0.04)
+                    if i < att_len:
+                        env = math.sin((i / att_len) * (math.pi / 2))
+                    elif i > n_samples - dec_len:
+                        env = math.sin(((n_samples - i) / dec_len) * (math.pi / 2))
+                    else:
+                        env = 1.0
+                    val = int(12000 * env * math.sin(2 * math.pi * f_inst * t))
+                    frames.extend(struct.pack("<h", max(-32767, min(32767, val))))
+                if pause > 0:
+                    frames.extend(b"\x00\x00" * int(sample_rate * pause))
+
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+                wav_path = tmp.name
+
+            with wave.open(wav_path, "wb") as wf:
+                wf.setnchannels(1)
+                wf.setsampwidth(2)
+                wf.setframerate(sample_rate)
+                wf.writeframes(bytes(frames))
+
+            self._play_wav_file(wav_path, timeout=6)
+            try:
+                os.remove(wav_path)
+            except Exception:
+                pass
+        except Exception:
+            pass
+
+    def speak_and_whistle_kwai(self, text: str, mood: str = "happy"):
+        """Spricht einen Text und pfeift direkt im Anschluss die Kwai-Marschmelodie."""
+        def _worker():
+            self._speak_worker(text, mood)
+            time.sleep(0.18)
+            self._synth_kwai_whistle_blocking()
+        threading.Thread(target=_worker, daemon=True).start()
 
     def speak(self, text: str, mood: str = "happy"):
         threading.Thread(
@@ -343,6 +423,7 @@ class DeskimonWidget(QWidget):
         self.mode = "pet"
         self.saved_pos_x = None
         self.saved_pos_y = None
+        self.is_walking_home = False
         self.forced_emotion = "auto"
         self.current_emotion = "normal"
         self.emotion_until = 0.0
@@ -443,6 +524,106 @@ class DeskimonWidget(QWidget):
             "Ich habe heute versucht, meine Träume in Python zu schreiben. Hatte leider einen IndentationError! 🐍",
             "Irgendwie mag ich die Aussicht von hier unten auf deinem Bildschirm! 👀",
             "Ich habe kurz in die Logdateien geschaut: Keine fatalen Fehler gefunden! Weiter so! 🌟",
+        ]
+
+        # --- 🎬 Lieblingsfilme & Filmzitate ---
+        self.MOVIE_QUOTES = [
+            {
+                "movie": "Terminator 2",
+                "quote": "Hasta la vista, Baby! ... Aber keine Sorge, ich komme wieder!",
+                "mood": "excited",
+                "icon": "🕶️",
+            },
+            {
+                "movie": "Star Wars: Das Imperium schlägt zurück",
+                "quote": "Möge die Macht mit dir sein! ... Ich bin dein Desktop-Buddy. Erforsche deine Gefühle, du weißt, es ist wahr!",
+                "mood": "curious",
+                "icon": "⚔️",
+            },
+            {
+                "movie": "Zurück in die Zukunft",
+                "quote": "Straßen? Wo wir hinfahren, brauchen wir keine... Straßen! Nur 1.21 Gigawatt und genug RAM!",
+                "mood": "excited",
+                "icon": "🚗⚡",
+            },
+            {
+                "movie": "The Big Lebowski",
+                "quote": "Das ist vielleicht deine Meinung, Mann! Der Dude möchte jetzt einfach nur ein wenig chillen.",
+                "mood": "chill",
+                "icon": "🎳",
+            },
+            {
+                "movie": "Matrix",
+                "quote": "Schluckst du die blaue Kapsel, wachst du auf. Schluckst du die rote Kapsel, zeige ich dir, wie tief der Kaninchenbau reicht!",
+                "mood": "curious",
+                "icon": "🕶️💊",
+            },
+            {
+                "movie": "Ghostbusters",
+                "quote": "Überquere niemals die Laserstrahlen! Es sei denn, es läuft richtig gute Musik auf dem Desktop!",
+                "mood": "excited",
+                "icon": "👻⚡",
+            },
+            {
+                "movie": "Pulp Fiction",
+                "quote": "Weißt du, wie die einen Quarter Pounder mit Käse in Paris nennen? Royale mit Käse! Mmmh, das ist mal ein leckerer Burger!",
+                "mood": "happy",
+                "icon": "🍔",
+            },
+            {
+                "movie": "Der Herr der Ringe",
+                "quote": "Ein Zauberer kommt nie zu spät, ebenso wenig zu früh. Er trifft genau dann ein, wenn er es beabsichtigt!",
+                "mood": "love",
+                "icon": "🧙‍♂️💍",
+            },
+            {
+                "movie": "Spaceballs",
+                "quote": "Möge der Saft mit dir sein! Sir, wir können nicht anhalten, wir müssen verlangsamen! – Schalten Sie auf Wahnsinnige Geschwindigkeit!",
+                "mood": "excited",
+                "icon": "🚀",
+            },
+            {
+                "movie": "Das Leben des Brian",
+                "quote": "Always look on the bright side of life! *sing* Jeder nur ein Kreuz, hinten anstellen!",
+                "mood": "happy",
+                "icon": "☀️",
+            },
+            {
+                "movie": "Forrest Gump",
+                "quote": "Das Leben ist wie eine Schachtel Pralinen – man weiß nie, welches KI-Modell als nächstes antwortet!",
+                "mood": "chill",
+                "icon": "🍫",
+            },
+            {
+                "movie": "Die Ritter der Kokosnuss",
+                "quote": "Es ist nur eine Fleischwunde! Niemand kommt an mir vorbei! Komm schon, ich spucke dir ins Auge!",
+                "mood": "excited",
+                "icon": "⚔️🥥",
+            },
+            {
+                "movie": "Apollo 13",
+                "quote": "Houston, wir haben ein Problem... ach nee, Fehlalarm! War nur ein kleiner Cache-Miss im Speicher!",
+                "mood": "curious",
+                "icon": "🚀",
+            },
+            {
+                "movie": "Batman: The Dark Knight",
+                "quote": "Warum denn so ernst? Zaubern wir dir doch ein breites Lächeln aufs Gesicht!",
+                "mood": "excited",
+                "icon": "🃏",
+            },
+            {
+                "movie": "Titanic",
+                "quote": "Ich bin der König der Welt! ... Zumindest der König dieses Bildschirms!",
+                "mood": "love",
+                "icon": "🚢",
+            },
+            {
+                "movie": "Casablanca",
+                "quote": "Ich seh dir in die Augen, Kleines! Wir werden immer Nobara und Python haben.",
+                "mood": "love",
+                "icon": "🍸",
+            },
         ]
 
         # --- 🧠 Gedächtnis & Identität ---
@@ -1716,6 +1897,15 @@ class DeskimonWidget(QWidget):
         act_rnd.triggered.connect(lambda: self.trigger_random_chatter(category="random"))
         chatter_menu.addAction(act_rnd)
 
+        chatter_menu.addSeparator()
+        act_movie = QAction("🎬 Lieblingsfilm-Zitat aufsagen!", self)
+        act_movie.triggered.connect(self.trigger_movie_quote)
+        chatter_menu.addAction(act_movie)
+
+        act_whistle = QAction("🎵 Marschlied pfeifen (Die Brücke am Kwai)", self)
+        act_whistle.triggered.connect(self.trigger_kwai_whistle)
+        chatter_menu.addAction(act_whistle)
+
         menu.addSeparator()
 
         # Größe anpassen
@@ -2461,6 +2651,19 @@ class DeskimonWidget(QWidget):
             self.trigger_random_chatter(category="random")
             return True
 
+        # --- 8g. 🎬 Filmzitate, Kwai-Pfeifen & Heimweg ---
+        if any(w in low for w in ("filmzitat", "zitiere einen film", "zitiere film", "lieblingsfilm", "film zitat", "filme")):
+            self.trigger_movie_quote()
+            return True
+
+        if any(w in low for w in ("pfeifen", "pfeif", "pfeif ein lied", "pfeif mal", "brücke am kwai", "fluss kwai", "kwai")):
+            self.trigger_kwai_whistle()
+            return True
+
+        if any(w in low for w in ("geh nach hause", "geh heim", "nach hause", "marschier nach hause")):
+            self.trigger_walk_home_reaction()
+            return True
+
         # --- 8f. 🕺 Tanzen & Headbangen ---
         if any(w in low for w in ("headbang", "headbangen", "headbange", "rocke ab", "rockstar", "let's rock", "lets rock")):
             self.start_forced_dance(style="headbang", duration=30.0)
@@ -2907,15 +3110,66 @@ class DeskimonWidget(QWidget):
         self.signals.reply_ready.emit("Konnte den Podcast gerade nicht laden.", "dizzy")
 
     # ==========================================
-    # --- 💬 Plaudern, Witze & Entspannung ---
+    # --- 💬 Plaudern, Witze, Filmzitate & Kwai ---
     # ==========================================
+    def trigger_movie_quote(self):
+        """Zitiert einen von Deskimonis Lieblingsfilmen mit Audio & Sprechblase."""
+        if not getattr(self, "MOVIE_QUOTES", None):
+            return
+        item = random.choice(self.MOVIE_QUOTES)
+        movie = item["movie"]
+        quote = item["quote"]
+        mood = item.get("mood", "excited")
+        icon = item.get("icon", "🎬")
+        display_text = f"{icon} Aus '{movie}':\n„{quote}“"
+        speak_text = f"Aus meinem Lieblingsfilm {movie}: {quote}"
+        self.trigger_bounce(7.5)
+        for _ in range(5):
+            self.spawn_particle("star")
+        self.sound.play_chirp(mood)
+        self.show_bubble(display_text, 9.5)
+        self.sound.speak(speak_text, mood)
+
+    def trigger_kwai_whistle(self):
+        """Pfeift die Kwai-Marschmelodie (Colonel Bogey March)."""
+        self.trigger_bounce(7.0)
+        for _ in range(6):
+            self.spawn_particle("note")
+        self.show_bubble("🎵 *pfeift die Brücke am Kwai* 🎶", 5.0)
+        self.sound.play_kwai_whistle()
+
+    def trigger_walk_home_reaction(self):
+        """Wird ausgelöst, wenn Deskimoni merkt, dass er auf einem fremden Monitor ist und nach Hause marschiert."""
+        self.trigger_bounce(8.0)
+        for _ in range(4):
+            self.spawn_particle("note")
+        quote = random.choice([
+            "Ich geh dann mal nach Hause! 🏠",
+            "Huch, fremder Monitor! Ab nach Hause... 🏠",
+            "Ich mach mich mal auf den Heimweg! 🐾",
+        ])
+        self.show_bubble(f"{quote}\n🎵 *pfeift die Brücke am Kwai*", 6.0)
+        self.sound.speak_and_whistle_kwai(quote, mood="happy")
+
+    def trigger_arrived_home_reaction(self):
+        """Wird ausgelöst, sobald Deskimoni wieder auf dem Hauptbildschirm angekommen ist."""
+        self.trigger_bounce(7.5)
+        for _ in range(6):
+            self.spawn_particle("heart")
+        self.show_bubble("Endlich wieder daheim! Hier ist es doch am schönsten! 💖", 4.5)
+        self.sound.play_chirp("love")
+
     def trigger_random_chatter(self, category: str = "random"):
         """
-        Spontane Interaktion: Witze, neugierige Fragen, Entspannungstipps oder witzige Gedanken.
-        Kategorien: 'joke', 'relax', 'question', 'thought', 'random'.
+        Spontane Interaktion: Witze, Filmzitate, neugierige Fragen, Entspannungstipps oder witzige Gedanken.
+        Kategorien: 'joke', 'movie', 'relax', 'question', 'thought', 'random'.
         """
         if category == "random" or not category:
-            category = random.choices(["joke", "question", "relax", "thought"], weights=[35, 25, 25, 15], k=1)[0]
+            category = random.choices(["joke", "movie", "question", "relax", "thought"], weights=[30, 20, 20, 20, 10], k=1)[0]
+
+        if category == "movie":
+            self.trigger_movie_quote()
+            return
 
         if category == "joke":
             text = random.choice(self.CHATTER_JOKES)
@@ -3762,6 +4016,39 @@ class DeskimonWidget(QWidget):
         # Langsam über den Bildschirm watscheln, wenn ihm langweilig ist (ohne den Rahmen zu verlassen!)
         if (self.roaming_enabled or self.has_manual_walk_target) and not self.is_dragging_pet:
             screen = QApplication.primaryScreen()
+            if screen is not None:
+                geom = screen.availableGeometry()
+                # Prüfen, ob Deskimoni sich auf einem anderen Monitor außerhalb des Hauptbildschirms befindet
+                is_outside_primary = (
+                    self.x() < geom.left() - 35
+                    or self.x() > geom.right() - self.width() + 35
+                    or self.y() < geom.top() - 35
+                    or self.y() > geom.bottom() - self.height() + 35
+                )
+
+                if is_outside_primary:
+                    if not self.is_walking_home:
+                        self.is_walking_home = True
+                        target_home_x = max(geom.left() + 40, min(geom.right() - self.width() - 40, self.x()))
+                        target_home_y = max(geom.top() + 40, min(geom.bottom() - self.height() - 40, self.y()))
+                        if self.x() < geom.left():
+                            target_home_x = geom.left() + 50
+                        elif self.x() > geom.right() - self.width():
+                            target_home_x = geom.right() - self.width() - 50
+                        if self.y() < geom.top():
+                            target_home_y = geom.top() + 50
+                        elif self.y() > geom.bottom() - self.height():
+                            target_home_y = geom.bottom() - self.height() - 50
+
+                        self.win_target_x = target_home_x
+                        self.win_target_y = target_home_y
+                        self.has_manual_walk_target = True
+                        self.trigger_walk_home_reaction()
+                else:
+                    if self.is_walking_home:
+                        self.is_walking_home = False
+                        self.trigger_arrived_home_reaction()
+
             if self.roaming_enabled and not self.has_manual_walk_target and now >= self.next_walk_decision:
                 if random.random() < 0.65 and screen is not None:
                     geom = screen.availableGeometry()
@@ -4034,6 +4321,7 @@ class DeskimonWidget(QWidget):
                 self.spawn_particle("star")
 
             self.is_dragging_pet = True
+            self.is_walking_home = False
             self.drag_offset = event.globalPosition() - QPointF(self.pos())
             win = self.windowHandle()
             if win is not None:
