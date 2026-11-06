@@ -1,105 +1,150 @@
 # 🤖 Deskimoni & NorskMus
 
-**Deskimoni** ist ein intelligenter, lebendiger Desktop-Begleiter (Desktop Pet & AI Assistant) für Linux, geschrieben in Python und PyQt6. Er vereint charmante Vektor-Animationen mit lokaler/cloudbasierter KI, Sprachausgabe, Systemüberwachung, Produktivitäts-Tools und Unterhaltung.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python: 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
+[![GUI: PyQt6](https://img.shields.io/badge/GUI-PyQt6-green.svg)](https://riverbankcomputing.com/software/pyqt/)
 
-Mit **NorskMus** ist zudem ein spezialisierter Lernbegleiter für die norwegische Sprache (B1/B2 Niveau) mit Vokabel-Trainingssystem und Grammatik-Tipps enthalten!
+[🇩🇪 Zur deutschen Version wechseln (README.de.md)](README.de.md)
+
+**Deskimoni** is an interactive, animated desktop pet and AI companion built in Python with PyQt6. Designed to bring life to your screen, it combines charming vector animations with local or cloud-based AI, neural text-to-speech, system monitoring, productivity tools, and entertainment.
+
+Also included is **NorskMus**, a dedicated Norwegian language learning companion (B1/B2 level) with interactive flashcards, grammar hints, and AI-powered feedback!
 
 ---
 
-## ✨ Hauptfunktionen
+## ✨ Features
 
-### 🐾 Lebendiger Desktop-Begleiter
-* **Reichhaltige Animationen**: Blinzeln, Schweben, Wandern über den Bildschirm, Schlafen, Neugierig-Sein und Reagieren auf Mauszeiger und Klicks.
-* **Musik & Headbangen 🎸**: Schlägt im Rhythmus mit dem Kopf (Headbanging) oder groovt bei Musik und Webradio mit Partikeleffekten.
-* **Verschiedene Skins**:
+### 🐾 Living Desktop Companion
+* **Expressive Animations**: Blinking, floating, wandering across screens, sleeping, curious glances, and reacting to mouse movement and clicks.
+* **Music Groove & Headbanging 🎸**: Automatically grooves or headbangs to music and online radio with animated particle effects (notes & stars).
+* **Multiple Skins**:
   * 👹 *Classic Oni*
   * 🐱 *Cyber Cat*
   * 👾 *Retro Pixel*
   * 👻 *Cozy Ghost*
   * 🚀 *Space Bot*
-* **Window Physics & Dragging**: Kann frei auf dem Desktop bewegt, minimiert oder an den Rand gepinnt werden.
+* **Physics & Window Dragging**: Freely move it anywhere on your desktop, minimize it, or pin it to screen edges.
 
-### 🧠 KI-Gehirn & Gedächtnis
-* **Ollama (Lokal)** & **Google Gemini (Cloud-Fallback)**: Reagiert direkt auf Fragen, Aufgaben oder Unterhaltungen.
-* **Persönliches Gedächtnis**: Kann mit eigenem Namen und deinem Namen personalisiert werden; merkt sich Vorlieben, Notizen und Fakten dauerhaft (`~/.config/deskimoni/memory.json`).
-* **Sprachsynthese (TTS)**: Natürlich klingende deutsche Sprachausgabe via `edge-tts` (Katja / Conrad Neural).
-* **Spracheingabe**: Sprich direkt per Mikrofon mit deinem Pet.
+### 🧠 Dual AI Brain & Persistent Memory
+* **Local Ollama & Google Gemini Failover**: Chat and ask questions anytime. Uses your local Ollama models (e.g. `llama3`, `gemma3`) and can seamlessly fall back to Google Gemini.
+* **Persistent Memory**: Name your pet and give it your own name. It remembers facts, user preferences, and notes across sessions (`~/.config/deskimoni/memory.json`).
+* **Neural TTS (Speech)**: Realistic spoken responses via `edge-tts`.
+* **Voice Input**: Talk directly to your pet using your microphone.
 
-### ⏰ Produktivität & Gesundheit
-* **Pomodoro-Timer**: Einstellbare Arbeits- und Pausenzeiten mit diskreten Audio-Signalen.
-* **Wecker & Countdown**: Flexible Timer-Einstellung (z. B. relative Minuten oder feste Uhrzeit `HH:MM`).
-* **Erinnerungen**: Sanfte Reminder zum Trinken, Aufstehen und Durchatmen.
-* **Smalltalk & Witze**: Erzählt auf Wunsch oder zufällig Witze, Denkanstöße und fragt nach deinem Befinden.
+### ⏰ Productivity & Health
+* **Pomodoro Timer**: Customizable work and break cycles with subtle audio chimes.
+* **Alarm Clock & Countdown Timer**: Set timers in minutes or specify an exact target time (`HH:MM`).
+* **Wellness Reminders**: Gentle notifications to stay hydrated, stretch, and take posture breaks.
+* **Friendly Check-Ins & Jokes**: Asks how your day is going, shares random thoughts, or tells a joke.
 
-### 📻 News, Radio & Podcasts
-* **RSS-Newsfeed**: Liest aktuelle Schlagzeilen (Tagesschau, Heise, BBC oder eigene Feeds) mit Sprachausgabe vor.
-* **Internetradio & Musik**: Integrierter Stream-Player (Lofi Chill, Rock Antenne, 80s Synthwave, NDR Info, u. v. m.).
-
----
-
-## 🇳🇴 NorskMus (Norwegisch-Trainer)
-
-Im Projekt enthalten ist **`norskmus.py`**:
-* Interaktive Maus mit norwegischem Schal als Desktop-Pet.
-* B1/B2 Multiple-Choice-Fragen, Vokabelkarten und Grammatikhilfen (z. B. Satzstellung, Präpositionen).
-* KI-Erklärungen auf Knopfdruck bei falschen oder schwierigen Antworten.
-* Sprachausgabe mit nativer norwegischer Aussprache (`no-NO-PernilleNeural`).
+### 📻 News, Internet Radio & Podcasts
+* **RSS News Reader**: Reads aloud the latest headlines (Tagesschau, Heise, BBC, or custom feeds).
+* **Built-in Internet Radio**: Stream web radio stations (Lofi Chill, Rock Antenne, 80s Synthwave, News, etc.) while you work.
 
 ---
 
-## 🚀 Installation & Schnellstart
+## 🇳🇴 NorskMus (Norwegian Language Trainer)
 
-### 1. System-Voraussetzungen (Linux)
-Für Audio-Wiedergabe, TTS und System-Tools werden folgende Systempakete empfohlen (Debian/Ubuntu/Fedora/Arch):
-
-```bash
-# Ubuntu / Debian
-sudo apt install python3-pip python3-venv mpv ffmpeg
-
-# Fedora
-sudo dnf install python3-pip mpv ffmpeg
-
-# Arch Linux
-sudo pacman -S python-pip mpv ffmpeg
-```
-
-### 2. Repository klonen & einrichten
-```bash
-git clone https://github.com/<DEIN-BENUTZERNAME>/deskimoni.git
-cd deskimoni
-./install.sh
-```
-
-### 3. Starten
-
-**Deskimoni starten:**
-```bash
-./run.sh
-```
-
-**NorskMus starten:**
-```bash
-./run_mouse.sh
-```
+Included as **`norskmus.py`**:
+* An animated desktop mouse wearing a Norwegian scarf.
+* B1/B2 Norwegian vocabulary quizzes, sentence structure drills, and grammar tips.
+* On-demand AI explanations for tricky answers.
+* Native Norwegian pronunciation using `no-NO-PernilleNeural`.
 
 ---
 
-## ⚙️ Konfiguration
+## 🚀 Installation & Getting Started
 
-Alle Einstellungen werden automatisch im Benutzerverzeichnis unter `~/.config/deskimoni/` abgelegt:
-* `config.json`: Fenstereinstellungen, Lautstärke, ausgewählte Feeds & Radiosender, Timer-Werte.
-* `memory.json`: Name des Pets, Benutzername und gespeicherte Fakten.
+### 🐧 Linux (Ubuntu, Debian, Fedora, Arch, Nobara)
+
+1. **Install system dependencies**:
+   ```bash
+   # Ubuntu / Debian
+   sudo apt install python3-pip python3-venv mpv ffmpeg
+
+   # Fedora / Nobara
+   sudo dnf install python3-pip mpv ffmpeg
+
+   # Arch Linux
+   sudo pacman -S python-pip mpv ffmpeg
+   ```
+
+2. **Clone and setup**:
+   ```bash
+   git clone https://github.com/LGBarons/deskimoni.git
+   cd deskimoni
+   ./install.sh
+   ```
+
+3. **Run**:
+   * Deskimoni: `./run.sh`
+   * NorskMus: `./run_mouse.sh`
 
 ---
 
-## 📋 Anforderungen (`requirements.txt`)
-* `PyQt6>=6.5.0`
-* `psutil>=5.9.0`
-* `requests>=2.28.0`
-* `edge-tts>=6.1.0`
-* `SpeechRecognition>=3.10.0`
+### 🪟 Windows
+
+1. **Clone repository**:
+   ```powershell
+   git clone https://github.com/LGBarons/deskimoni.git
+   cd deskimoni
+   ```
+
+2. **Create virtual environment and install requirements**:
+   ```powershell
+   python -m venv .venv
+   .venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+   *(Optional for streaming audio/radio: install [mpv](https://mpv.io) via `winget install mpv.mpv`)*
+
+3. **Run**:
+   ```powershell
+   python deskimoni.py
+   # Or for NorskMus:
+   python norskmus.py
+   ```
 
 ---
 
-## 📄 Lizenz
-Dieses Projekt steht unter der [MIT-Lizenz](LICENSE).
+### 🍏 macOS
+
+1. **Install tools & clone**:
+   ```bash
+   brew install mpv ffmpeg
+   git clone https://github.com/LGBarons/deskimoni.git
+   cd deskimoni
+   ```
+
+2. **Setup and run**:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   python3 deskimoni.py
+   ```
+
+---
+
+## 🔒 Configuration & Privacy
+
+All user configurations, custom names, and optional API keys are stored **strictly on your local machine** under `~/.config/deskimoni/`:
+* `config.json`: Volume, active feeds, radio stations, window position, and optional Gemini API key.
+* `memory.json`: Pet identity, user name, and remembered facts.
+
+**No private tokens, personal memory, or telemetry data are ever tracked or sent to Git.**
+
+---
+
+## 📋 Requirements
+* `Python >= 3.10`
+* `PyQt6 >= 6.5.0`
+* `psutil >= 5.9.0`
+* `requests >= 2.28.0`
+* `edge-tts >= 6.1.0`
+* `SpeechRecognition >= 3.10.0`
+
+---
+
+## 📄 License
+This project is licensed under the [MIT License](LICENSE).
