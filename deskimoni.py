@@ -22,7 +22,10 @@ import json
 import math
 import time
 import wave
-import fcntl
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
 import base64
 import shutil
 import struct
@@ -1763,6 +1766,9 @@ class DeskimonWidget(QWidget):
 
     def _init_uinput_shaker(self):
         """Erstellt ein virtuelles Kernel-Maus-Device (/dev/uinput), damit Deskimoni den Mauszeiger schütteln kann (KDE Shake-Cursor-Vergrößerung)."""
+        if not fcntl or not os.path.exists("/dev/uinput"):
+            self._uinput_fd = None
+            return
         try:
             fd = os.open("/dev/uinput", os.O_WRONLY | os.O_NONBLOCK)
             fcntl.ioctl(fd, 0x40045564, 0x01)  # UI_SET_EVBIT -> EV_KEY
