@@ -37,6 +37,10 @@ Mit **NorskMus** ist zudem ein spezialisierter Lernbegleiter für die norwegisch
 * **RSS-Newsfeed**: Liest aktuelle Schlagzeilen (Tagesschau, Heise, BBC oder eigene Feeds) mit Sprachausgabe vor.
 * **Internetradio & Musik**: Integrierter Stream-Player (Lofi Chill, Rock Antenne, 80s Synthwave, NDR Info, u. v. m.).
 
+### 🌐 Dreisprachige Menüs
+* **Mehrsprachiges Kontextmenü**: Schneller Wechsel zwischen **Deutsch**, **Englisch** und **Norwegisch (Bokmål)** direkt über Rechtsklick oder per Chatbefehl.
+* **Persistente Einstellungen**: Menüsprache, Skin, Position und Skalierung bleiben nach dem Neustart dauerhaft erhalten.
+
 ---
 
 ## 🇳🇴 NorskMus (Norwegisch-Trainer)

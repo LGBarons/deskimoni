@@ -41,6 +41,10 @@ Also included is **NorskMus**, a dedicated Norwegian language learning companion
 * **RSS News Reader**: Reads aloud the latest headlines (Tagesschau, Heise, BBC, or custom feeds).
 * **Built-in Internet Radio**: Stream web radio stations (Lofi Chill, Rock Antenne, 80s Synthwave, News, etc.) while you work.
 
+### 🌐 Trilingual Context Menus
+* **Multi-Language Support**: Switch context menus between **German (Deutsch)**, **English**, and **Norwegian Bokmål (Norsk bokmål)** via right-click or chat command.
+* **Persistent Preferences**: Language choice, skin, position, and display scale persist across restarts.
+
 ---
 
 ## 🇳🇴 NorskMus (Norwegian Language Trainer)

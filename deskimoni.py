@@ -391,6 +391,16 @@ class DeskimonWidget(QWidget):
         ("cat", "🐱 Katze (Minka Schnurr)"),
     ]
 
+    SKIN_NAMES = {
+        "orbit": {"de": "🚀 Orbit (Astronaut)", "en": "🚀 Orbit (Astronaut)", "nb": "🚀 Orbit (Astronaut)"},
+        "sprout": {"de": "🌱 Sprout (Pflanzen-Buddy)", "en": "🌱 Sprout (Plant Buddy)", "nb": "🌱 Sprout (Plantevenn)"},
+        "neo": {"de": "🎧 Neo (Cyber Hoodie)", "en": "🎧 Neo (Cyber Hoodie)", "nb": "🎧 Neo (Cyber-hettegenser)"},
+        "poko": {"de": "🐼 Poko (Panda)", "en": "🐼 Poko (Panda)", "nb": "🐼 Poko (Panda)"},
+        "hopper": {"de": "🐰 Hopper (Bunny)", "en": "🐰 Hopper (Bunny)", "nb": "🐰 Hopper (Kanin)"},
+        "soldier": {"de": "🪖 Soldat (Flecktarn & Helm)", "en": "🪖 Soldier (Camo & Helmet)", "nb": "🪖 Soldat (Kamuflasje & Hjelm)"},
+        "cat": {"de": "🐱 Katze (Minka Schnurr)", "en": "🐱 Cat (Minka Purr)", "nb": "🐱 Katt (Minka Mal)"},
+    }
+
     MODES = [
         ("pet", "🐾 Begleiter (Gesicht)"),
         ("clock", "🕒 Digitaluhr"),
@@ -402,6 +412,349 @@ class DeskimonWidget(QWidget):
         ("pomodoro", "🍅 Pomodoro-Timer"),
         ("sysmon", "💻 PC-Vitalwerte (Nobara)"),
     ]
+
+    MODE_NAMES = {
+        "pet": {"de": "🐾 Begleiter (Gesicht)", "en": "🐾 Companion (Face)", "nb": "🐾 Ledsager (Ansikt)"},
+        "clock": {"de": "🕒 Digitaluhr", "en": "🕒 Digital Clock", "nb": "🕒 Digital klokke"},
+        "weather": {"de": "🌤️ Live-Wetter", "en": "🌤️ Live Weather", "nb": "🌤️ Værmelding (Live)"},
+        "news": {"de": "📰 RSS News", "en": "📰 RSS News", "nb": "📰 RSS-nyheter"},
+        "radio": {"de": "📻 Web-Radio", "en": "📻 Web Radio", "nb": "📻 Nettradio"},
+        "music": {"de": "🎵 Musik & Media", "en": "🎵 Music & Media", "nb": "🎵 Musikk og medier"},
+        "linux": {"de": "🐧 Nobara / Fedora Tipps", "en": "🐧 Linux / OS Tips", "nb": "🐧 Linux- / OS-tips"},
+        "pomodoro": {"de": "🍅 Pomodoro-Timer", "en": "🍅 Pomodoro Timer", "nb": "🍅 Pomodoro-tidsur"},
+        "sysmon": {"de": "💻 PC-Vitalwerte (Nobara)", "en": "💻 PC Vital Stats", "nb": "💻 PC-systemstatus"},
+    }
+
+    EMOTIONS = [
+        ("auto", "✨ Automatisch"),
+        ("happy", "😊 Glücklich"),
+        ("love", "😍 Verliebt"),
+        ("excited", "🤩 Begeistert"),
+        ("chill", "😎 Entspannt"),
+        ("sleepy", "😴 Müde"),
+        ("dizzy", "😵‍💫 Schwindelig"),
+        ("angry", "😠 Grummelig"),
+    ]
+
+    EMOTION_NAMES = {
+        "auto": {"de": "✨ Automatisch", "en": "✨ Automatic", "nb": "✨ Automatisk"},
+        "happy": {"de": "😊 Glücklich", "en": "😊 Happy", "nb": "😊 Glad"},
+        "love": {"de": "😍 Verliebt", "en": "😍 Loving", "nb": "😍 Forelsket"},
+        "excited": {"de": "🤩 Begeistert", "en": "🤩 Excited", "nb": "🤩 Spent"},
+        "chill": {"de": "😎 Entspannt", "en": "😎 Relaxed", "nb": "😎 Avslappet"},
+        "sleepy": {"de": "😴 Müde", "en": "😴 Sleepy", "nb": "😴 Søvnig"},
+        "dizzy": {"de": "😵‍💫 Schwindelig", "en": "😵‍💫 Dizzy", "nb": "😵‍💫 Svimmel"},
+        "angry": {"de": "😠 Grummelig", "en": "😠 Grumpy", "nb": "😠 Gretten"},
+    }
+
+    TRANSLATIONS = {
+        "de": {
+            "menu_lang": "🌐 Menüsprache / Language / Språk",
+            "menu_skin": "🎨 Körper / Charakter",
+            "menu_mode": "📟 Display-Modus",
+            "menu_emo": "🎭 Stimmung",
+            "menu_memory": "🧠 Gedächtnis & Name ({bot_name})",
+            "act_rename_bot": "🏷️ Meinen Namen ändern (aktuell: {bot_name})...",
+            "act_rename_user": "👤 Deinen Namen einstellen (aktuell: {user_name})...",
+            "act_show_memory": "📝 Mein Gedächtnis ansehen...",
+            "act_add_fact": "➕ Neuen Fakt über dich merken...",
+            "act_clear_memory": "🗑️ Gedächtnis zurücksetzen...",
+            "menu_voice_ai": "🗣️ Sprache & KI (Ollama / Gemini)",
+            "act_tts": "🔊 Sprachausgabe aktiviert",
+            "act_chirps": "🤖 Roboter-Piepser (Chirps)",
+            "menu_voice_select": "🎙️ Stimme auswählen",
+            "act_gemini_key": "🔑 Google Gemini API-Key eingeben ({status})...",
+            "key_saved": "✅ Gespeichert",
+            "key_not_set": "❌ Noch nicht gesetzt",
+            "menu_pomo": "🍅 Pomodoro-Timer & ⏰ Wecker",
+            "pomo_start": "▶ Fokus starten ({mins} Min)",
+            "pomo_pause": "⏸ Fokus pausieren",
+            "pomo_short": "☕ Kurze Pause ({mins} Min)",
+            "pomo_long": "🛋️ Lange Pause ({mins} Min)",
+            "pomo_reset": "🔄 Pomodoro zurücksetzen ({mins}:00)",
+            "pomo_cfg_work": "⚙️ Pomodoro-Arbeitszeit anpassen ({mins} Min)...",
+            "pomo_cfg_breaks": "⚙️ Pausenzeiten anpassen ({short}m / {long}m)...",
+            "pomo_sound": "🔔 Sprachansage bei Timer-Ende",
+            "act_alarm_cd": "⏰ Schnell-Wecker / Timer stellen (Minuten)...",
+            "act_alarm_time": "⏰ Wecker auf Uhrzeit stellen (HH:MM)...",
+            "act_alarm_active": "⏳ Wecker aktiv: {target} (in {mins} Min)",
+            "act_alarm_cancel": "🛑 Aktiven Wecker ausschalten",
+            "menu_commands": "⚡ Befehle & Aktionen",
+            "menu_linux": "🐧 Nobara / Fedora Linux-Helfer",
+            "act_update_system": "🔄 Nobara System-Updater starten",
+            "act_fix_audio": "🔊 Sound/PipeWire neu starten (Audio-Fix)",
+            "menu_news": "📰 RSS-News & Schlagzeilen",
+            "act_speak_news": "🔊 Aktuelle Nachricht jetzt vorlesen",
+            "act_fetch_news": "🔄 Nachrichten jetzt aktualisieren",
+            "act_auto_news": "⏱️ Alle {mins} Min. vorlesen",
+            "act_news_interval": "⏱️ Vorlese-Intervall anpassen...",
+            "menu_feeds": "🌐 RSS-Quelle auswählen",
+            "act_add_feed": "➕ Eigenen RSS-Feed hinzufügen...",
+            "menu_health": "💧 Gesundheit & Pausen-Erinnerungen",
+            "act_water": "💧 Wasser-Erinnerung (alle {mins} Min.)",
+            "act_move": "🚶‍♂️ Bewegungs-Erinnerung (alle {mins} Min.)",
+            "act_water_interval": "⏱️ Wasser-Intervall ändern...",
+            "act_move_interval": "⏱️ Bewegungs-Intervall ändern...",
+            "act_water_test": "🧪 Wasser-Erinnerung jetzt testen",
+            "act_move_test": "🧪 Bewegungs-Erinnerung jetzt testen",
+            "menu_radio": "📻 Internet-Radio & Podcasts",
+            "act_radio_play": "▶ Radio abspielen",
+            "act_radio_pause": "⏸ Radio pausieren",
+            "act_radio_next": "⏭️ Nächster Radiosender",
+            "act_radio_prev": "⏮️ Vorheriger Radiosender",
+            "menu_stations": "📻 Radiosender auswählen",
+            "act_add_radio": "➕ Eigenen Stream hinzufügen...",
+            "act_podcast_100": "🎙️ Tagesschau in 100 Sekunden (Podcast)",
+            "act_dance_auto": "🕺 Automatisch zur Musik tanzen & headbangen",
+            "act_headbang_now": "🎸 Headbangen! (Rockstar-Modus)",
+            "act_dance_now": "💃 Jetzt tanzen!",
+            "act_dance_stop": "🛑 Tanzen stoppen",
+            "menu_chatter": "💬 Plaudern, Witze & Entspannung",
+            "act_chatter_toggle": "💬 Spontanes Plaudern (alle ~{mins} Min.)",
+            "act_chatter_interval": "⏱️ Plauder-Intervall ändern...",
+            "act_joke": "😄 Erzähl mir jetzt einen Witz!",
+            "act_question": "❓ Frag mich etwas!",
+            "act_relax": "🧘 Entspannungstipp bitte!",
+            "act_random_chat": "🎲 Spontan drauflosplaudern",
+            "act_movie_quote": "🎬 Lieblingsfilm-Zitat aufsagen!",
+            "act_whistle": "🎵 Marschlied pfeifen (Die Brücke am Kwai)",
+            "menu_size": "🔍 Größe",
+            "size_small": "Klein (80%)",
+            "size_normal": "Normal (100%)",
+            "size_large": "Groß (125%)",
+            "act_controls": "🎛️ Buttons & Chat einblenden (Doppelklick Bauch-Knopf)",
+            "act_cursor_finder": "🧭 Mauszeiger nach 3 Min. Stillstand suchen",
+            "act_top": "📌 Immer im Vordergrund",
+            "act_walk": "🐾 Frei umherwatscheln (Spaziergang)",
+            "act_autostart": "🚀 Automatisch beim PC-Start starten",
+            "act_pet": "💖 Füttern / Streicheln",
+            "act_norsk_hide": "🐭 NorskMus (Norwegisch-Maus) verstecken",
+            "act_norsk_show": "🐭 NorskMus (Norwegisch-Maus) rufen",
+            "act_quit": "❌ Beenden",
+            # Befehle
+            "cmd_screen": "👀 Was ist auf meinem Bildschirm? (KI-Blick)",
+            "cmd_mouse": "🔍 Mauszeiger jetzt suchen gehen!",
+            "cmd_tip": "🐧 Zufälliger Linux / Nobara Tipp",
+            "cmd_weather": "🌤️ Wie ist das Wetter?",
+            "cmd_music": "🎵 Musik Play / Pause",
+            "cmd_next": "⏭️ Nächstes Lied",
+            "cmd_browser": "🌐 Browser (Firefox) öffnen",
+            "cmd_files": "📁 Dateimanager (Dolphin) öffnen",
+            "cmd_term": "💻 Terminal (Konsole) öffnen",
+            "cmd_steam": "🎮 Steam öffnen",
+            "cmd_screenshot": "📸 Screenshot (Spectacle)",
+            "cmd_tl": "↖️ Oben links in die Ecke",
+            "cmd_tr": "↗️ Oben rechts in die Ecke",
+            "cmd_bl": "↙️ Unten links in die Ecke",
+            "cmd_br": "↘️ Unten rechts in die Ecke",
+            "cmd_lock": "🔒 Bildschirm sperren",
+            "cmd_shutdown": "⏻ PC herunterfahren (Dialog)",
+        },
+        "en": {
+            "menu_lang": "🌐 Menu Language / Sprache / Språk",
+            "menu_skin": "🎨 Body / Character",
+            "menu_mode": "📟 Display Mode",
+            "menu_emo": "🎭 Mood",
+            "menu_memory": "🧠 Memory & Name ({bot_name})",
+            "act_rename_bot": "🏷️ Change my name (current: {bot_name})...",
+            "act_rename_user": "👤 Set your name (current: {user_name})...",
+            "act_show_memory": "📝 View my memory...",
+            "act_add_fact": "➕ Remember a new fact about you...",
+            "act_clear_memory": "🗑️ Reset memory...",
+            "menu_voice_ai": "🗣️ Voice & AI (Ollama / Gemini)",
+            "act_tts": "🔊 Voice speech output enabled",
+            "act_chirps": "🤖 Robot chirps enabled",
+            "menu_voice_select": "🎙️ Select Voice",
+            "act_gemini_key": "🔑 Enter Google Gemini API Key ({status})...",
+            "key_saved": "✅ Saved",
+            "key_not_set": "❌ Not set yet",
+            "menu_pomo": "🍅 Pomodoro Timer & ⏰ Alarm",
+            "pomo_start": "▶ Start Focus ({mins} min)",
+            "pomo_pause": "⏸ Pause Focus",
+            "pomo_short": "☕ Short Break ({mins} min)",
+            "pomo_long": "🛋️ Long Break ({mins} min)",
+            "pomo_reset": "🔄 Reset Pomodoro ({mins}:00)",
+            "pomo_cfg_work": "⚙️ Adjust Pomodoro work time ({mins} min)...",
+            "pomo_cfg_breaks": "⚙️ Adjust break times ({short}m / {long}m)...",
+            "pomo_sound": "🔔 Voice announcement when timer ends",
+            "act_alarm_cd": "⏰ Quick countdown timer (minutes)...",
+            "act_alarm_time": "⏰ Set alarm clock for time (HH:MM)...",
+            "act_alarm_active": "⏳ Alarm active: {target} (in {mins} min)",
+            "act_alarm_cancel": "🛑 Turn off active alarm",
+            "menu_commands": "⚡ Commands & Actions",
+            "menu_linux": "🐧 Linux Tips & Helpers",
+            "act_update_system": "🔄 Start System Updater",
+            "act_fix_audio": "🔊 Restart Audio / PipeWire (Audio Fix)",
+            "menu_news": "📰 RSS News & Headlines",
+            "act_speak_news": "🔊 Read current headline aloud",
+            "act_fetch_news": "🔄 Refresh news headlines now",
+            "act_auto_news": "⏱️ Read aloud every {mins} min",
+            "act_news_interval": "⏱️ Adjust news interval...",
+            "menu_feeds": "🌐 Select RSS feed source",
+            "act_add_feed": "➕ Add custom RSS feed...",
+            "menu_health": "💧 Health & Break Reminders",
+            "act_water": "💧 Water reminder (every {mins} min)",
+            "act_move": "🚶‍♂️ Movement reminder (every {mins} min)",
+            "act_water_interval": "⏱️ Change water interval...",
+            "act_move_interval": "⏱️ Change movement interval...",
+            "act_water_test": "🧪 Test water reminder now",
+            "act_move_test": "🧪 Test movement reminder now",
+            "menu_radio": "📻 Internet Radio & Podcasts",
+            "act_radio_play": "▶ Play Radio",
+            "act_radio_pause": "⏸ Pause Radio",
+            "act_radio_next": "⏭️ Next Radio Station",
+            "act_radio_prev": "⏮️ Previous Radio Station",
+            "menu_stations": "📻 Select radio station",
+            "act_add_radio": "➕ Add custom stream...",
+            "act_podcast_100": "🎙️ News in 100 seconds (Podcast)",
+            "act_dance_auto": "🕺 Automatically dance & headbang to music",
+            "act_headbang_now": "🎸 Headbang! (Rockstar Mode)",
+            "act_dance_now": "💃 Dance now!",
+            "act_dance_stop": "🛑 Stop dancing",
+            "menu_chatter": "💬 Chatter, Jokes & Relaxation",
+            "act_chatter_toggle": "💬 Spontaneous chatter (every ~{mins} min)",
+            "act_chatter_interval": "⏱️ Change chatter interval...",
+            "act_joke": "😄 Tell me a joke now!",
+            "act_question": "❓ Ask me a question!",
+            "act_relax": "🧘 Relaxation tip please!",
+            "act_random_chat": "🎲 Chat spontaneously",
+            "act_movie_quote": "🎬 Recite a favorite movie quote!",
+            "act_whistle": "🎵 Whistle march (Bridge on the River Kwai)",
+            "menu_size": "🔍 Size",
+            "size_small": "Small (80%)",
+            "size_normal": "Normal (100%)",
+            "size_large": "Large (125%)",
+            "act_controls": "🎛️ Show buttons & chat (double-click belly button)",
+            "act_cursor_finder": "🧭 Find mouse cursor after 3 min inactivity",
+            "act_top": "📌 Always on Top",
+            "act_walk": "🐾 Stroll around freely (Roaming)",
+            "act_autostart": "🚀 Launch automatically at PC startup",
+            "act_pet": "💖 Pet / Feed buddy",
+            "act_norsk_hide": "🐭 Hide NorskMus (Norwegian Mouse)",
+            "act_norsk_show": "🐭 Summon NorskMus (Norwegian Mouse)",
+            "act_quit": "❌ Quit",
+            # Commands
+            "cmd_screen": "👀 What is on my screen? (AI Vision)",
+            "cmd_mouse": "🔍 Go search the mouse cursor now!",
+            "cmd_tip": "🐧 Random Linux / OS Tip",
+            "cmd_weather": "🌤️ How is the weather?",
+            "cmd_music": "🎵 Music Play / Pause",
+            "cmd_next": "⏭️ Next Song",
+            "cmd_browser": "🌐 Open Browser (Firefox)",
+            "cmd_files": "📁 Open File Manager",
+            "cmd_term": "💻 Open Terminal",
+            "cmd_steam": "🎮 Open Steam",
+            "cmd_screenshot": "📸 Screenshot (Spectacle)",
+            "cmd_tl": "↖️ Go to top-left corner",
+            "cmd_tr": "↗️ Go to top-right corner",
+            "cmd_bl": "↙️ Go to bottom-left corner",
+            "cmd_br": "↘️ Go to bottom-right corner",
+            "cmd_lock": "🔒 Lock Screen",
+            "cmd_shutdown": "⏻ Shutdown PC (Dialog)",
+        },
+        "nb": {
+            "menu_lang": "🌐 Menyspråk / Language / Sprache",
+            "menu_skin": "🎨 Kropp / Karakter",
+            "menu_mode": "📟 Skjermmodus",
+            "menu_emo": "🎭 Humør",
+            "menu_memory": "🧠 Minne og navn ({bot_name})",
+            "act_rename_bot": "🏷️ Endre navnet mitt (nå: {bot_name})...",
+            "act_rename_user": "👤 Angi navnet ditt (nå: {user_name})...",
+            "act_show_memory": "📝 Se minnet mitt...",
+            "act_add_fact": "➕ Husk et nytt faktum om deg...",
+            "act_clear_memory": "🗑️ Tilbakestill minnet...",
+            "menu_voice_ai": "🗣️ Stemme og KI (Ollama / Gemini)",
+            "act_tts": "🔊 Talesyntese aktivert",
+            "act_chirps": "🤖 Robot-pipetoner (Chirps)",
+            "menu_voice_select": "🎙️ Velg stemme",
+            "act_gemini_key": "🔑 Legg inn Google Gemini API-nøkkel ({status})...",
+            "key_saved": "✅ Lagret",
+            "key_not_set": "❌ Ikke angitt ennå",
+            "menu_pomo": "🍅 Pomodoro-tidsur & ⏰ Vekkerklokke",
+            "pomo_start": "▶ Start fokus ({mins} min)",
+            "pomo_pause": "⏸ Pause fokus",
+            "pomo_short": "☕ Kort pause ({mins} min)",
+            "pomo_long": "🛋️ Lang pause ({mins} min)",
+            "pomo_reset": "🔄 Tilbakestill Pomodoro ({mins}:00)",
+            "pomo_cfg_work": "⚙️ Juster Pomodoro-arbeidstid ({mins} min)...",
+            "pomo_cfg_breaks": "⚙️ Juster pausetider ({short}m / {long}m)...",
+            "pomo_sound": "🔔 Talemelding når tiden er ute",
+            "act_alarm_cd": "⏰ Hurtigtimer / nedtelling (minutter)...",
+            "act_alarm_time": "⏰ Still vekkerklokke til klokkeslett (TT:MM)...",
+            "act_alarm_active": "⏳ Vekkerklokke aktiv: {target} (om {mins} min)",
+            "act_alarm_cancel": "🛑 Slå av aktiv vekkerklokke",
+            "menu_commands": "⚡ Kommandoer og handlinger",
+            "menu_linux": "🐧 Linux-tips og hjelp",
+            "act_update_system": "🔄 Start systemoppdatering",
+            "act_fix_audio": "🔊 Start lyd/PipeWire på nytt (lydfiks)",
+            "menu_news": "📰 RSS-nyheter og overskrifter",
+            "act_speak_news": "🔊 Les opp nåværende nyhet nå",
+            "act_fetch_news": "🔄 Oppdater nyheter nå",
+            "act_auto_news": "⏱️ Les opp hvert {mins}. minutt",
+            "act_news_interval": "⏱️ Juster opplesingsintervall...",
+            "menu_feeds": "🌐 Velg RSS-kilde",
+            "act_add_feed": "➕ Legg til egen RSS-kilde...",
+            "menu_health": "💧 Helse- og pausepåminnelser",
+            "act_water": "💧 Vannpåminnelse (hvert {mins}. min)",
+            "act_move": "🚶‍♂️ Bevegelsespåminnelse (hvert {mins}. min)",
+            "act_water_interval": "⏱️ Endre vannintervall...",
+            "act_move_interval": "⏱️ Endre bevegelsesintervall...",
+            "act_water_test": "🧪 Test vannpåminnelse nå",
+            "act_move_test": "🧪 Test bevegelsespåminnelse nå",
+            "menu_radio": "📻 Nettradio og podkaster",
+            "act_radio_play": "▶ Spill av radio",
+            "act_radio_pause": "⏸ Pause radio",
+            "act_radio_next": "⏭️ Neste radiokanal",
+            "act_radio_prev": "⏮️ Forrige radiokanal",
+            "menu_stations": "📻 Velg radiokanal",
+            "act_add_radio": "➕ Legg til egen radiostrøm...",
+            "act_podcast_100": "🎙️ Nyheter på 100 sekunder (podkast)",
+            "act_dance_auto": "🕺 Dans og headbang automatisk til musikk",
+            "act_headbang_now": "🎸 Headbange! (Rockestjernemodus)",
+            "act_dance_now": "💃 Dans nå!",
+            "act_dance_stop": "🛑 Stopp dansing",
+            "menu_chatter": "💬 Småprat, vitser og avslapping",
+            "act_chatter_toggle": "💬 Spontan småprat (hvert ~{mins}. min)",
+            "act_chatter_interval": "⏱️ Endre småpratintervall...",
+            "act_joke": "😄 Fortell meg en vits nå!",
+            "act_question": "❓ Spør meg om noe!",
+            "act_relax": "🧘 Gi meg et avslappingstips!",
+            "act_random_chat": "🎲 Småprat spontant",
+            "act_movie_quote": "🎬 Siter en favorittfilm!",
+            "act_whistle": "🎵 Fløyt marsj (Broen over Kwai)",
+            "menu_size": "🔍 Størrelse",
+            "size_small": "Liten (80%)",
+            "size_normal": "Normal (100%)",
+            "size_large": "Stor (125%)",
+            "act_controls": "🎛️ Vis knapper og chat (dobbeltklikk på magen)",
+            "act_cursor_finder": "🧭 Finn musepeker etter 3 min. inaktivitet",
+            "act_top": "📌 Alltid øverst",
+            "act_walk": "🐾 Vralte fritt rundt (Spasertur)",
+            "act_autostart": "🚀 Start automatisk ved PC-oppstart",
+            "act_pet": "💖 Kos / Mat ledsager",
+            "act_norsk_hide": "🐭 Skjul NorskMus (Norskmus)",
+            "act_norsk_show": "🐭 Hent NorskMus (Norskmus)",
+            "act_quit": "❌ Avslutt",
+            # Kommandoer
+            "cmd_screen": "👀 Hva er på skjermen min? (KI-blikk)",
+            "cmd_mouse": "🔍 Gå og finn musepekeren nå!",
+            "cmd_tip": "🐧 Tilfeldig Linux- / OS-tips",
+            "cmd_weather": "🌤️ Hvordan er været?",
+            "cmd_music": "🎵 Musikk Spill av / Pause",
+            "cmd_next": "⏭️ Neste sang",
+            "cmd_browser": "🌐 Åpne nettleser (Firefox)",
+            "cmd_files": "📁 Åpne filbehandler",
+            "cmd_term": "💻 Åpne terminal",
+            "cmd_steam": "🎮 Åpne Steam",
+            "cmd_screenshot": "📸 Skjermbilde (Spectacle)",
+            "cmd_tl": "↖️ Gå til øverste venstre hjørne",
+            "cmd_tr": "↗️ Gå til øverste høyre hjørne",
+            "cmd_bl": "↙️ Gå til nederste venstre hjørne",
+            "cmd_br": "↘️ Gå til nederste høyre hjørne",
+            "cmd_lock": "🔒 Lås skjerm",
+            "cmd_shutdown": "⏻ Slå av PC (Dialog)",
+        }
+    }
 
     LINUX_TIPS = [
         ("📦 System-Update", "In Nobara immer den 'Nobara Package Manager' oder im Terminal 'nobara-sync cli' nutzen (nicht nur dnf update)!"),
@@ -436,6 +789,43 @@ class DeskimonWidget(QWidget):
         ("gemini-3.8-flash", "Gemini 3.8 Flash", "⚡ Ultraschnell & Neueste Generation (Google Standard)"),
     ]
 
+    def t(self, key: str, **kwargs) -> str:
+        """Übersetzt einen Menü-Schlüssel anhand der gewählten Menüsprache (de / en / nb)."""
+        lang = getattr(self, "app_language", "de")
+        lang_dict = self.TRANSLATIONS.get(lang, self.TRANSLATIONS["de"])
+        text = lang_dict.get(key, self.TRANSLATIONS["de"].get(key, key))
+        if kwargs:
+            try:
+                return text.format(**kwargs)
+            except Exception:
+                return text
+        return text
+
+    def get_skin_label(self, skin_id: str) -> str:
+        lang = getattr(self, "app_language", "de")
+        return self.SKIN_NAMES.get(skin_id, {}).get(lang, skin_id)
+
+    def get_mode_label(self, mode_id: str) -> str:
+        lang = getattr(self, "app_language", "de")
+        return self.MODE_NAMES.get(mode_id, {}).get(lang, mode_id)
+
+    def get_emotion_label(self, emo_id: str) -> str:
+        lang = getattr(self, "app_language", "de")
+        return self.EMOTION_NAMES.get(emo_id, {}).get(lang, emo_id)
+
+    def set_app_language(self, lang_code: str):
+        """Wechselt die Menüsprache (de = Deutsch, en = Englisch, nb = Norsk Bokmål)."""
+        if lang_code in ("de", "en", "nb"):
+            self.app_language = lang_code
+            self.save_user_settings()
+            self.trigger_bounce(7.0)
+            msg = {
+                "de": "🌐 Menüsprache auf Deutsch eingestellt!",
+                "en": "🌐 Menu language set to English!",
+                "nb": "🌐 Menyspråk satt til norsk (bokmål)!",
+            }.get(lang_code, "Sprache geändert!")
+            self.show_bubble(msg, 3.5)
+
     def __init__(self):
         super().__init__()
 
@@ -456,6 +846,7 @@ class DeskimonWidget(QWidget):
         self.body_offset_y = 68
 
         # Zustand & Skin
+        self.app_language = "de"
         self.skin = "orbit"
         self.mode = "pet"
         self.saved_pos_x = None
@@ -895,6 +1286,10 @@ class DeskimonWidget(QWidget):
                 if "dance_enabled" in data:
                     self.dance_enabled = bool(data["dance_enabled"])
 
+                # Menüsprache (de / en / nb)
+                if "app_language" in data and str(data["app_language"]).strip() in ("de", "en", "nb"):
+                    self.app_language = str(data["app_language"]).strip()
+
                 # Name & Identität
                 if "bot_name" in data and str(data["bot_name"]).strip():
                     self.bot_name = str(data["bot_name"]).strip()
@@ -939,6 +1334,7 @@ class DeskimonWidget(QWidget):
             os.makedirs(os.path.dirname(path), exist_ok=True)
             cur_pos = self.pos()
             data = {
+                "app_language": self.app_language,
                 "skin": self.skin,
                 "mode": self.mode,
                 "scale_factor": self.scale_factor,
@@ -1542,10 +1938,23 @@ class DeskimonWidget(QWidget):
             """
         )
 
+        # 🌐 Menüsprache (Deutsch / English / Norsk Bokmål)
+        lang_menu = menu.addMenu(self.t("menu_lang"))
+        lang_group = QActionGroup(self)
+        for code, label in [("de", "🇩🇪 Deutsch (Standard)"), ("en", "🇬🇧 English"), ("nb", "🇳🇴 Norsk (Bokmål)")]:
+            act_lg = QAction(label, self, checkable=True)
+            act_lg.setChecked(self.app_language == code)
+            act_lg.triggered.connect(lambda checked, c=code: self.set_app_language(c))
+            lang_group.addAction(act_lg)
+            lang_menu.addAction(act_lg)
+
+        menu.addSeparator()
+
         # Skin-Auswahl
-        skin_menu = menu.addMenu("🎨 Körper / Charakter")
+        skin_menu = menu.addMenu(self.t("menu_skin"))
         skin_group = QActionGroup(self)
-        for skin_id, label in self.SKINS:
+        for skin_id, _ in self.SKINS:
+            label = self.get_skin_label(skin_id)
             act = QAction(label, self, checkable=True)
             act.setChecked(self.skin == skin_id)
             act.triggered.connect(lambda checked, s=skin_id: self.set_skin(s))
@@ -1553,9 +1962,10 @@ class DeskimonWidget(QWidget):
             skin_menu.addAction(act)
 
         # Modus-Auswahl
-        mode_menu = menu.addMenu("📟 Display-Modus")
+        mode_menu = menu.addMenu(self.t("menu_mode"))
         mode_group = QActionGroup(self)
-        for mode_id, label in self.MODES:
+        for mode_id, _ in self.MODES:
+            label = self.get_mode_label(mode_id)
             act = QAction(label, self, checkable=True)
             act.setChecked(self.mode == mode_id)
             act.triggered.connect(lambda checked, m=mode_id: self.set_mode(m))
@@ -1563,9 +1973,10 @@ class DeskimonWidget(QWidget):
             mode_menu.addAction(act)
 
         # Emotion-Auswahl
-        emo_menu = menu.addMenu("🎭 Stimmung")
+        emo_menu = menu.addMenu(self.t("menu_emo"))
         emo_group = QActionGroup(self)
-        for emo_id, label in self.EMOTIONS:
+        for emo_id, _ in self.EMOTIONS:
+            label = self.get_emotion_label(emo_id)
             act = QAction(label, self, checkable=True)
             act.setChecked(self.forced_emotion == emo_id)
             act.triggered.connect(lambda checked, e=emo_id: self.set_forced_emotion(e))
@@ -1573,43 +1984,43 @@ class DeskimonWidget(QWidget):
             emo_menu.addAction(act)
 
         # Gedächtnis & Identität
-        memory_menu = menu.addMenu(f"🧠 Gedächtnis & Name ({self.bot_name})")
-        act_rename = QAction(f"🏷️ Meinen Namen ändern (aktuell: {self.bot_name})...", self)
+        memory_menu = menu.addMenu(self.t("menu_memory", bot_name=self.bot_name))
+        act_rename = QAction(self.t("act_rename_bot", bot_name=self.bot_name), self)
         act_rename.triggered.connect(self.prompt_set_bot_name)
         memory_menu.addAction(act_rename)
 
-        act_user_name = QAction(f"👤 Deinen Namen einstellen (aktuell: {self.user_name})...", self)
+        act_user_name = QAction(self.t("act_rename_user", user_name=self.user_name), self)
         act_user_name.triggered.connect(self.prompt_set_user_name)
         memory_menu.addAction(act_user_name)
 
         memory_menu.addSeparator()
-        act_show_mem = QAction("📝 Mein Gedächtnis ansehen...", self)
+        act_show_mem = QAction(self.t("act_show_memory"), self)
         act_show_mem.triggered.connect(self.show_memory_dialog)
         memory_menu.addAction(act_show_mem)
 
-        act_add_fact = QAction("➕ Neuen Fakt über dich merken...", self)
+        act_add_fact = QAction(self.t("act_add_fact"), self)
         act_add_fact.triggered.connect(self.prompt_add_fact_dialog)
         memory_menu.addAction(act_add_fact)
 
         memory_menu.addSeparator()
-        act_clear_mem = QAction("🗑️ Gedächtnis zurücksetzen...", self)
+        act_clear_mem = QAction(self.t("act_clear_memory"), self)
         act_clear_mem.triggered.connect(self.prompt_clear_memory)
         memory_menu.addAction(act_clear_mem)
 
         # Sprache & KI-Einstellungen (Ollama + Google Gemini API)
-        voice_menu = menu.addMenu("🗣️ Sprache & KI (Ollama / Gemini)")
-        act_tts = QAction("🔊 Sprachausgabe aktiviert", self, checkable=True)
+        voice_menu = menu.addMenu(self.t("menu_voice_ai"))
+        act_tts = QAction(self.t("act_tts"), self, checkable=True)
         act_tts.setChecked(self.sound.voice_enabled)
         act_tts.triggered.connect(self.toggle_voice)
         voice_menu.addAction(act_tts)
 
-        act_chirp = QAction("🤖 Roboter-Piepser (Chirps)", self, checkable=True)
+        act_chirp = QAction(self.t("act_chirps"), self, checkable=True)
         act_chirp.setChecked(self.sound.chirps_enabled)
         act_chirp.triggered.connect(self.toggle_chirps)
         voice_menu.addAction(act_chirp)
 
         # Untermenü für Stimmen-Auswahl
-        tts_select_menu = voice_menu.addMenu("🎙️ Stimme auswählen")
+        tts_select_menu = voice_menu.addMenu(self.t("menu_voice_select"))
         tts_group = QActionGroup(self)
         for vid, vlabel, *_ in RobotSoundEngine.VOICE_PROFILES:
             act_v = QAction(vlabel, self, checkable=True)
@@ -1619,8 +2030,8 @@ class DeskimonWidget(QWidget):
             tts_select_menu.addAction(act_v)
 
         voice_menu.addSeparator()
-        key_status = "✅ Gespeichert" if self.gemini_api_key else "❌ Noch nicht gesetzt"
-        act_gem_key = QAction(f"🔑 Google Gemini API-Key eingeben ({key_status})...", self)
+        key_status = self.t("key_saved") if self.gemini_api_key else self.t("key_not_set")
+        act_gem_key = QAction(self.t("act_gemini_key", status=key_status), self)
         act_gem_key.triggered.connect(self.prompt_gemini_api_key)
         voice_menu.addAction(act_gem_key)
 
@@ -1638,34 +2049,34 @@ class DeskimonWidget(QWidget):
             voice_menu.addAction(act_m)
 
         # Pomodoro- & Wecker-Steuerung
-        pomo_menu = menu.addMenu("🍅 Pomodoro-Timer & ⏰ Wecker")
-        pomo_lbl = "⏸ Fokus pausieren" if self.pomo_running else f"▶ Fokus starten ({self.pomo_work_mins} Min)"
+        pomo_menu = menu.addMenu(self.t("menu_pomo"))
+        pomo_lbl = self.t("pomo_pause") if self.pomo_running else self.t("pomo_start", mins=self.pomo_work_mins)
         act_pomo_toggle = QAction(pomo_lbl, self)
         act_pomo_toggle.triggered.connect(self.toggle_pomodoro)
         pomo_menu.addAction(act_pomo_toggle)
 
-        act_pomo_short = QAction(f"☕ Kurze Pause ({self.pomo_short_break_mins} Min)", self)
+        act_pomo_short = QAction(self.t("pomo_short", mins=self.pomo_short_break_mins), self)
         act_pomo_short.triggered.connect(lambda: self.start_pomodoro_phase("short_break"))
         pomo_menu.addAction(act_pomo_short)
 
-        act_pomo_long = QAction(f"🛋️ Lange Pause ({self.pomo_long_break_mins} Min)", self)
+        act_pomo_long = QAction(self.t("pomo_long", mins=self.pomo_long_break_mins), self)
         act_pomo_long.triggered.connect(lambda: self.start_pomodoro_phase("long_break"))
         pomo_menu.addAction(act_pomo_long)
 
-        act_pomo_reset = QAction(f"🔄 Pomodoro zurücksetzen ({self.pomo_work_mins}:00)", self)
+        act_pomo_reset = QAction(self.t("pomo_reset", mins=self.pomo_work_mins), self)
         act_pomo_reset.triggered.connect(self.reset_pomodoro)
         pomo_menu.addAction(act_pomo_reset)
 
         pomo_menu.addSeparator()
-        act_pomo_work_cfg = QAction(f"⚙️ Pomodoro-Arbeitszeit anpassen ({self.pomo_work_mins} Min)...", self)
+        act_pomo_work_cfg = QAction(self.t("pomo_cfg_work", mins=self.pomo_work_mins), self)
         act_pomo_work_cfg.triggered.connect(self.prompt_pomodoro_work_dialog)
         pomo_menu.addAction(act_pomo_work_cfg)
 
-        act_pomo_breaks_cfg = QAction(f"⚙️ Pausenzeiten anpassen ({self.pomo_short_break_mins}m / {self.pomo_long_break_mins}m)...", self)
+        act_pomo_breaks_cfg = QAction(self.t("pomo_cfg_breaks", short=self.pomo_short_break_mins, long=self.pomo_long_break_mins), self)
         act_pomo_breaks_cfg.triggered.connect(self.prompt_pomodoro_breaks_dialog)
         pomo_menu.addAction(act_pomo_breaks_cfg)
 
-        act_pomo_sound = QAction("🔔 Sprachansage bei Timer-Ende", self, checkable=True)
+        act_pomo_sound = QAction(self.t("pomo_sound"), self, checkable=True)
         act_pomo_sound.setChecked(self.pomo_sound_enabled)
         def _toggle_pomo_sound(checked):
             self.pomo_sound_enabled = checked
@@ -1675,75 +2086,75 @@ class DeskimonWidget(QWidget):
 
         pomo_menu.addSeparator()
         # Wecker & Kurzzeit-Timer
-        act_alarm_cd = QAction("⏰ Schnell-Wecker / Timer stellen (Minuten)...", self)
+        act_alarm_cd = QAction(self.t("act_alarm_cd"), self)
         act_alarm_cd.triggered.connect(self.prompt_alarm_countdown_dialog)
         pomo_menu.addAction(act_alarm_cd)
 
-        act_alarm_time = QAction("⏰ Wecker auf Uhrzeit stellen (HH:MM)...", self)
+        act_alarm_time = QAction(self.t("act_alarm_time"), self)
         act_alarm_time.triggered.connect(self.prompt_alarm_time_dialog)
         pomo_menu.addAction(act_alarm_time)
 
         if self.alarm_active and self.alarm_time:
             rem_s = max(0, int(self.alarm_time - time.time()))
             target_str = datetime.fromtimestamp(self.alarm_time).strftime("%H:%M")
-            act_alarm_status = QAction(f"⏳ Wecker aktiv: {target_str} (in {rem_s//60} Min)", self)
+            act_alarm_status = QAction(self.t("act_alarm_active", target=target_str, mins=rem_s//60), self)
             act_alarm_status.setEnabled(False)
             pomo_menu.addAction(act_alarm_status)
 
-            act_alarm_cancel = QAction("🛑 Aktiven Wecker ausschalten", self)
+            act_alarm_cancel = QAction(self.t("act_alarm_cancel"), self)
             act_alarm_cancel.triggered.connect(self.cancel_alarm)
             pomo_menu.addAction(act_alarm_cancel)
 
         # Schnell-Aktionen & PC-Befehle
-        cmd_menu = menu.addMenu("⚡ Befehle & Aktionen")
-        for label, cmd_str in [
-            ("👀 Was ist auf meinem Bildschirm? (KI-Blick)", "was ist auf meinem bildschirm"),
-            ("🔍 Mauszeiger jetzt suchen gehen!", "such die maus"),
-            ("🐧 Zufälliger Linux / Nobara Tipp", "linux tipp"),
-            ("🌤️ Wie ist das Wetter?", "wie ist das wetter"),
-            ("🎵 Musik Play / Pause", "musik pause"),
-            ("⏭️ Nächstes Lied", "nächstes lied"),
-            ("🌐 Browser (Firefox) öffnen", "öffne browser"),
-            ("📁 Dateimanager (Dolphin) öffnen", "öffne dateimanager"),
-            ("💻 Terminal (Konsole) öffnen", "öffne terminal"),
-            ("🎮 Steam öffnen", "öffne steam"),
-            ("📸 Screenshot (Spectacle)", "mach einen screenshot"),
-            ("↖️ Oben links in die Ecke", "geh nach oben links"),
-            ("↗️ Oben rechts in die Ecke", "geh nach oben rechts"),
-            ("↙️ Unten links in die Ecke", "geh nach unten links"),
-            ("↘️ Unten rechts in die Ecke", "geh nach unten rechts"),
-            ("🔒 Bildschirm sperren", "bildschirm sperren"),
-            ("⏻ PC herunterfahren (Dialog)", "pc herunterfahren"),
+        cmd_menu = menu.addMenu(self.t("menu_commands"))
+        for cmd_key, cmd_str in [
+            ("cmd_screen", "was ist auf meinem bildschirm"),
+            ("cmd_mouse", "such die maus"),
+            ("cmd_tip", "linux tipp"),
+            ("cmd_weather", "wie ist das wetter"),
+            ("cmd_music", "musik pause"),
+            ("cmd_next", "nächstes lied"),
+            ("cmd_browser", "öffne browser"),
+            ("cmd_files", "öffne dateimanager"),
+            ("cmd_term", "öffne terminal"),
+            ("cmd_steam", "öffne steam"),
+            ("cmd_screenshot", "mach einen screenshot"),
+            ("cmd_tl", "geh nach oben links"),
+            ("cmd_tr", "geh nach oben rechts"),
+            ("cmd_bl", "geh nach unten links"),
+            ("cmd_br", "geh nach unten rechts"),
+            ("cmd_lock", "bildschirm sperren"),
+            ("cmd_shutdown", "pc herunterfahren"),
         ]:
-            act_c = QAction(label, self)
+            act_c = QAction(self.t(cmd_key), self)
             act_c.triggered.connect(lambda checked, c=cmd_str: self.ask_deskimoni(c))
             cmd_menu.addAction(act_c)
 
         # Spezielles Linux-Einsteiger-Helfer-Menü
-        linux_menu = menu.addMenu("🐧 Nobara / Fedora Linux-Helfer")
+        linux_menu = menu.addMenu(self.t("menu_linux"))
         for idx, (tip_title, _tip_body) in enumerate(self.LINUX_TIPS):
             act_l = QAction(tip_title, self)
             act_l.triggered.connect(lambda checked, i=idx: self.show_linux_tip(i))
             linux_menu.addAction(act_l)
         linux_menu.addSeparator()
-        act_update_nobara = QAction("🔄 Nobara System-Updater starten", self)
+        act_update_nobara = QAction(self.t("act_update_system"), self)
         act_update_nobara.triggered.connect(lambda: self.ask_deskimoni("system update"))
         linux_menu.addAction(act_update_nobara)
-        act_fix_audio = QAction("🔊 Sound/PipeWire neu starten (Audio-Fix)", self)
+        act_fix_audio = QAction(self.t("act_fix_audio"), self)
         act_fix_audio.triggered.connect(lambda: self.ask_deskimoni("repariere audio"))
         linux_menu.addAction(act_fix_audio)
 
         # --- 📰 RSS-News & Schlagzeilen Menü ---
-        news_menu = menu.addMenu("📰 RSS-News & Schlagzeilen")
-        act_speak_n = QAction("🔊 Aktuelle Nachricht jetzt vorlesen", self)
+        news_menu = menu.addMenu(self.t("menu_news"))
+        act_speak_n = QAction(self.t("act_speak_news"), self)
         act_speak_n.triggered.connect(self.speak_current_news)
         news_menu.addAction(act_speak_n)
 
-        act_fetch_n = QAction("🔄 Nachrichten jetzt aktualisieren", self)
+        act_fetch_n = QAction(self.t("act_fetch_news"), self)
         act_fetch_n.triggered.connect(lambda: self.fetch_news_async(speak_when_done=False, notify=True))
         news_menu.addAction(act_fetch_n)
 
-        act_auto_n = QAction(f"⏱️ Alle {self.news_interval_mins} Min. vorlesen", self, checkable=True)
+        act_auto_n = QAction(self.t("act_auto_news", mins=self.news_interval_mins), self, checkable=True)
         act_auto_n.setChecked(self.news_auto_speak)
         def _toggle_auto_news(checked):
             self.news_auto_speak = checked
@@ -1759,12 +2170,12 @@ class DeskimonWidget(QWidget):
                 self.news_interval_mins = val
                 self.save_user_settings()
                 self.show_bubble(f"⏱️ Vorlese-Intervall auf {val} Minuten gesetzt!", 3.0)
-        act_int_n = QAction("⏱️ Vorlese-Intervall anpassen...", self)
+        act_int_n = QAction(self.t("act_news_interval"), self)
         act_int_n.triggered.connect(_set_news_interval)
         news_menu.addAction(act_int_n)
 
         news_menu.addSeparator()
-        feeds_sub = news_menu.addMenu("🌐 RSS-Quelle auswählen")
+        feeds_sub = news_menu.addMenu(self.t("menu_feeds"))
         feed_grp = QActionGroup(self)
         for f_idx, feed in enumerate(self.rss_feeds):
             act_f = QAction(feed["name"], self, checkable=True)
@@ -1773,13 +2184,13 @@ class DeskimonWidget(QWidget):
             feed_grp.addAction(act_f)
             feeds_sub.addAction(act_f)
         feeds_sub.addSeparator()
-        act_add_feed = QAction("➕ Eigenen RSS-Feed hinzufügen...", self)
+        act_add_feed = QAction(self.t("act_add_feed"), self)
         act_add_feed.triggered.connect(self.add_custom_rss_dialog)
         feeds_sub.addAction(act_add_feed)
 
         # --- 💧 Gesundheit & Pausen Menü ---
-        health_menu = menu.addMenu("💧 Gesundheit & Pausen-Erinnerungen")
-        act_water = QAction(f"💧 Wasser-Erinnerung (alle {self.water_reminder_mins} Min.)", self, checkable=True)
+        health_menu = menu.addMenu(self.t("menu_health"))
+        act_water = QAction(self.t("act_water", mins=self.water_reminder_mins), self, checkable=True)
         act_water.setChecked(self.water_reminder_enabled)
         def _toggle_water(checked):
             self.water_reminder_enabled = checked
@@ -1789,7 +2200,7 @@ class DeskimonWidget(QWidget):
         act_water.triggered.connect(_toggle_water)
         health_menu.addAction(act_water)
 
-        act_move = QAction(f"🚶‍♂️ Bewegungs-Erinnerung (alle {self.move_reminder_mins} Min.)", self, checkable=True)
+        act_move = QAction(self.t("act_move", mins=self.move_reminder_mins), self, checkable=True)
         act_move.setChecked(self.move_reminder_enabled)
         def _toggle_move(checked):
             self.move_reminder_enabled = checked
@@ -1806,7 +2217,7 @@ class DeskimonWidget(QWidget):
                 self.water_reminder_mins = val
                 self.save_user_settings()
                 self.show_bubble(f"💧 Wasser-Intervall auf {val} Min. gesetzt!", 3.0)
-        act_w_int = QAction("⏱️ Wasser-Intervall ändern...", self)
+        act_w_int = QAction(self.t("act_water_interval"), self)
         act_w_int.triggered.connect(_set_water_int)
         health_menu.addAction(act_w_int)
 
@@ -1816,36 +2227,36 @@ class DeskimonWidget(QWidget):
                 self.move_reminder_mins = val
                 self.save_user_settings()
                 self.show_bubble(f"🚶‍♂️ Bewegungs-Intervall auf {val} Min. gesetzt!", 3.0)
-        act_m_int = QAction("⏱️ Bewegungs-Intervall ändern...", self)
+        act_m_int = QAction(self.t("act_move_interval"), self)
         act_m_int.triggered.connect(_set_move_int)
         health_menu.addAction(act_m_int)
 
         health_menu.addSeparator()
-        act_test_w = QAction("🧪 Wasser-Erinnerung jetzt testen", self)
+        act_test_w = QAction(self.t("act_water_test"), self)
         act_test_w.triggered.connect(self.trigger_water_reminder)
         health_menu.addAction(act_test_w)
 
-        act_test_m = QAction("🧪 Bewegungs-Erinnerung jetzt testen", self)
+        act_test_m = QAction(self.t("act_move_test"), self)
         act_test_m.triggered.connect(self.trigger_move_reminder)
         health_menu.addAction(act_test_m)
 
         # --- 📻 Web-Radio & Podcasts Menü ---
-        radio_menu = menu.addMenu("📻 Internet-Radio & Podcasts")
-        radio_lbl = "⏸ Radio pausieren" if self.radio_playing else "▶ Radio abspielen"
+        radio_menu = menu.addMenu(self.t("menu_radio"))
+        radio_lbl = self.t("act_radio_pause") if self.radio_playing else self.t("act_radio_play")
         act_radio_play = QAction(radio_lbl, self)
         act_radio_play.triggered.connect(self.toggle_radio)
         radio_menu.addAction(act_radio_play)
 
-        act_r_next = QAction("⏭️ Nächster Radiosender", self)
+        act_r_next = QAction(self.t("act_radio_next"), self)
         act_r_next.triggered.connect(self.next_radio_station)
         radio_menu.addAction(act_r_next)
 
-        act_r_prev = QAction("⏮️ Vorheriger Radiosender", self)
+        act_r_prev = QAction(self.t("act_radio_prev"), self)
         act_r_prev.triggered.connect(self.prev_radio_station)
         radio_menu.addAction(act_r_prev)
 
         radio_menu.addSeparator()
-        stations_sub = radio_menu.addMenu("📻 Radiosender auswählen")
+        stations_sub = radio_menu.addMenu(self.t("menu_stations"))
         st_grp = QActionGroup(self)
         for s_idx, st in enumerate(self.radio_stations):
             act_s = QAction(st["name"], self, checkable=True)
@@ -1861,17 +2272,17 @@ class DeskimonWidget(QWidget):
             st_grp.addAction(act_s)
             stations_sub.addAction(act_s)
         stations_sub.addSeparator()
-        act_add_st = QAction("➕ Eigenen Stream hinzufügen...", self)
+        act_add_st = QAction(self.t("act_add_radio"), self)
         act_add_st.triggered.connect(self.add_custom_radio_dialog)
         stations_sub.addAction(act_add_st)
 
         radio_menu.addSeparator()
-        act_podcast_100 = QAction("🎙️ Tagesschau in 100 Sekunden (Podcast)", self)
+        act_podcast_100 = QAction(self.t("act_podcast_100"), self)
         act_podcast_100.triggered.connect(self.play_podcast_tagesschau_100s)
         radio_menu.addAction(act_podcast_100)
 
         radio_menu.addSeparator()
-        act_dance_toggle = QAction("🕺 Automatisch zur Musik tanzen & headbangen", self, checkable=True)
+        act_dance_toggle = QAction(self.t("act_dance_auto"), self, checkable=True)
         act_dance_toggle.setChecked(self.dance_enabled)
         def _toggle_dance(checked):
             self.dance_enabled = checked
@@ -1881,22 +2292,22 @@ class DeskimonWidget(QWidget):
         act_dance_toggle.triggered.connect(_toggle_dance)
         radio_menu.addAction(act_dance_toggle)
 
-        act_headbang_now = QAction("🎸 Headbangen! (Rockstar-Modus)", self)
+        act_headbang_now = QAction(self.t("act_headbang_now"), self)
         act_headbang_now.triggered.connect(lambda: self.start_forced_dance(style="headbang", duration=30.0))
         radio_menu.addAction(act_headbang_now)
 
-        act_dance_now = QAction("💃 Jetzt tanzen!", self)
+        act_dance_now = QAction(self.t("act_dance_now"), self)
         act_dance_now.triggered.connect(lambda: self.start_forced_dance(style="dance", duration=30.0))
         radio_menu.addAction(act_dance_now)
 
         if getattr(self, "is_dancing", False):
-            act_dance_stop = QAction("🛑 Tanzen stoppen", self)
+            act_dance_stop = QAction(self.t("act_dance_stop"), self)
             act_dance_stop.triggered.connect(self.stop_forced_dance)
             radio_menu.addAction(act_dance_stop)
 
         # --- 💬 Plaudern, Witze & Entspannung Menü ---
-        chatter_menu = menu.addMenu("💬 Plaudern, Witze & Entspannung")
-        act_chat_toggle = QAction(f"💬 Spontanes Plaudern (alle ~{self.chatter_interval_mins} Min.)", self, checkable=True)
+        chatter_menu = menu.addMenu(self.t("menu_chatter"))
+        act_chat_toggle = QAction(self.t("act_chatter_toggle", mins=self.chatter_interval_mins), self, checkable=True)
         act_chat_toggle.setChecked(self.chatter_enabled)
         def _toggle_chatter(checked):
             self.chatter_enabled = checked
@@ -1913,83 +2324,83 @@ class DeskimonWidget(QWidget):
                 self.next_chatter_time = time.time() + (val * 60 * random.uniform(0.7, 1.2))
                 self.save_user_settings()
                 self.show_bubble(f"⏱️ Plauder-Intervall auf ~{val} Min. gesetzt!", 3.0)
-        act_c_int = QAction("⏱️ Plauder-Intervall ändern...", self)
+        act_c_int = QAction(self.t("act_chatter_interval"), self)
         act_c_int.triggered.connect(_set_chatter_int)
         chatter_menu.addAction(act_c_int)
 
         chatter_menu.addSeparator()
-        act_j = QAction("😄 Erzähl mir jetzt einen Witz!", self)
+        act_j = QAction(self.t("act_joke"), self)
         act_j.triggered.connect(lambda: self.trigger_random_chatter(category="joke"))
         chatter_menu.addAction(act_j)
 
-        act_q = QAction("❓ Frag mich etwas!", self)
+        act_q = QAction(self.t("act_question"), self)
         act_q.triggered.connect(lambda: self.trigger_random_chatter(category="question"))
         chatter_menu.addAction(act_q)
 
-        act_rel = QAction("🧘 Entspannungstipp bitte!", self)
+        act_rel = QAction(self.t("act_relax"), self)
         act_rel.triggered.connect(lambda: self.trigger_random_chatter(category="relax"))
         chatter_menu.addAction(act_rel)
 
-        act_rnd = QAction("🎲 Spontan drauflosplaudern", self)
+        act_rnd = QAction(self.t("act_random_chat"), self)
         act_rnd.triggered.connect(lambda: self.trigger_random_chatter(category="random"))
         chatter_menu.addAction(act_rnd)
 
         chatter_menu.addSeparator()
-        act_movie = QAction("🎬 Lieblingsfilm-Zitat aufsagen!", self)
+        act_movie = QAction(self.t("act_movie_quote"), self)
         act_movie.triggered.connect(self.trigger_movie_quote)
         chatter_menu.addAction(act_movie)
 
-        act_whistle = QAction("🎵 Marschlied pfeifen (Die Brücke am Kwai)", self)
+        act_whistle = QAction(self.t("act_whistle"), self)
         act_whistle.triggered.connect(self.trigger_kwai_whistle)
         chatter_menu.addAction(act_whistle)
 
         menu.addSeparator()
 
         # Größe anpassen
-        size_menu = menu.addMenu("🔍 Größe")
-        for scale, label in [(0.8, "Klein (80%)"), (1.0, "Normal (100%)"), (1.25, "Groß (125%)")]:
+        size_menu = menu.addMenu(self.t("menu_size"))
+        for scale, label in [(0.8, self.t("size_small")), (1.0, self.t("size_normal")), (1.25, self.t("size_large"))]:
             act = QAction(label, self, checkable=True)
             act.setChecked(abs(self.scale_factor - scale) < 0.05)
             act.triggered.connect(lambda checked, sc=scale: self.set_scale(sc))
             size_menu.addAction(act)
 
-        act_controls = QAction("🎛️ Buttons & Chat einblenden (Doppelklick Bauch-Knopf)", self, checkable=True)
+        act_controls = QAction(self.t("act_controls"), self, checkable=True)
         act_controls.setChecked(self.controls_visible)
         act_controls.triggered.connect(self.toggle_controls_visibility)
         menu.addAction(act_controls)
 
-        act_cursor_finder = QAction("🧭 Mauszeiger nach 3 Min. Stillstand suchen", self, checkable=True)
+        act_cursor_finder = QAction(self.t("act_cursor_finder"), self, checkable=True)
         act_cursor_finder.setChecked(self.cursor_finder_enabled)
         act_cursor_finder.triggered.connect(self.toggle_cursor_finder)
         menu.addAction(act_cursor_finder)
 
-        act_top = QAction("📌 Immer im Vordergrund", self, checkable=True)
+        act_top = QAction(self.t("act_top"), self, checkable=True)
         act_top.setChecked(self.always_on_top)
         act_top.triggered.connect(self.toggle_always_on_top)
         menu.addAction(act_top)
 
-        act_walk = QAction("🐾 Frei umherwatscheln (Spaziergang)", self, checkable=True)
+        act_walk = QAction(self.t("act_walk"), self, checkable=True)
         act_walk.setChecked(self.roaming_enabled)
         act_walk.triggered.connect(self.toggle_roaming)
         menu.addAction(act_walk)
 
-        act_autostart = QAction("🚀 Automatisch beim PC-Start starten", self, checkable=True)
+        act_autostart = QAction(self.t("act_autostart"), self, checkable=True)
         act_autostart.setChecked(self.is_autostart_enabled())
         act_autostart.triggered.connect(self.toggle_autostart)
         menu.addAction(act_autostart)
 
-        act_pet = QAction("💖 Füttern / Streicheln", self)
+        act_pet = QAction(self.t("act_pet"), self)
         act_pet.triggered.connect(self.trigger_love_burst)
         menu.addAction(act_pet)
 
-        norsk_label = "🐭 NorskMus (Norwegisch-Maus) verstecken" if self.is_norskmus_running() else "🐭 NorskMus (Norwegisch-Maus) rufen"
+        norsk_label = self.t("act_norsk_hide") if self.is_norskmus_running() else self.t("act_norsk_show")
         act_norsk = QAction(norsk_label, self)
         act_norsk.triggered.connect(self.toggle_norskmus)
         menu.addAction(act_norsk)
 
         menu.addSeparator()
 
-        act_quit = QAction("❌ Beenden", self)
+        act_quit = QAction(self.t("act_quit"), self)
         act_quit.triggered.connect(QApplication.instance().quit)
         menu.addAction(act_quit)
 
@@ -2756,6 +3167,22 @@ class DeskimonWidget(QWidget):
         if any(w in low for w in ("repariere audio", "kein ton", "sound problem", "pipewire")):
             subprocess.Popen(["systemctl", "--user", "restart", "wireplumber", "pipewire", "pipewire-pulse"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             self.on_ai_reply("Ich habe dein PipeWire-Soundsystem frisch neu gestartet!", "happy")
+            return True
+
+        # --- 11. Menüsprache / Language / Språk ---
+        if any(w in low for w in ("language english", "english menu", "sprache englisch", "menü englisch", "switch to english")):
+            self.set_app_language("en")
+            self.on_ai_reply("All right! Context menus are now in English!", "happy")
+            return True
+
+        if any(w in low for w in ("norsk meny", "språk norsk", "bokmål", "sprache norwegisch", "menü norwegisch", "bytt til norsk")):
+            self.set_app_language("nb")
+            self.on_ai_reply("Flott! Menyen er nå på norsk (bokmål)!", "happy")
+            return True
+
+        if any(w in low for w in ("german menu", "sprache deutsch", "menü deutsch", "menüsprache deutsch", "switch to german")):
+            self.set_app_language("de")
+            self.on_ai_reply("Alles klar! Menüsprache ist jetzt Deutsch!", "happy")
             return True
 
         return False
