@@ -341,6 +341,8 @@ class DeskimonWidget(QWidget):
         # Zustand & Skin
         self.skin = "orbit"
         self.mode = "pet"
+        self.saved_pos_x = None
+        self.saved_pos_y = None
         self.forced_emotion = "auto"
         self.current_emotion = "normal"
         self.emotion_until = 0.0
@@ -680,6 +682,34 @@ class DeskimonWidget(QWidget):
                     self.bot_name = str(data["bot_name"]).strip()
                 if "user_name" in data and str(data["user_name"]).strip():
                     self.user_name = str(data["user_name"]).strip()
+
+                # Aussehen & Charakter (Skin, Modus, Größe, Fensterposition)
+                if "skin" in data and str(data["skin"]).strip():
+                    saved_skin = str(data["skin"]).strip()
+                    valid_skin_ids = [s[0] for s in self.SKINS]
+                    if saved_skin in valid_skin_ids:
+                        self.skin = saved_skin
+
+                if "mode" in data and str(data["mode"]).strip():
+                    saved_mode = str(data["mode"]).strip()
+                    valid_mode_ids = [m[0] for m in self.MODES]
+                    if saved_mode in valid_mode_ids:
+                        self.mode = saved_mode
+
+                if "scale_factor" in data:
+                    try:
+                        sf = float(data["scale_factor"])
+                        if 0.5 <= sf <= 3.0:
+                            self.scale_factor = sf
+                    except (ValueError, TypeError):
+                        pass
+
+                if "window_x" in data and "window_y" in data:
+                    try:
+                        self.saved_pos_x = int(data["window_x"])
+                        self.saved_pos_y = int(data["window_y"])
+                    except (ValueError, TypeError):
+                        pass
             if need_save:
                 self.save_user_settings()
         except Exception:
@@ -689,7 +719,13 @@ class DeskimonWidget(QWidget):
         path = self.get_settings_path()
         try:
             os.makedirs(os.path.dirname(path), exist_ok=True)
+            cur_pos = self.pos()
             data = {
+                "skin": self.skin,
+                "mode": self.mode,
+                "scale_factor": self.scale_factor,
+                "window_x": cur_pos.x(),
+                "window_y": cur_pos.y(),
                 "bot_name": self.bot_name,
                 "user_name": self.user_name,
                 "dance_enabled": self.dance_enabled,
@@ -2912,6 +2948,7 @@ class DeskimonWidget(QWidget):
 
     def cleanup_on_quit(self):
         """Sauberes Beenden von Audio-Streams und Hilfsprozessen beim Beenden."""
+        self.save_user_settings()
         self.stop_radio()
         if getattr(self, "norskmus_proc", None) and self.norskmus_proc.poll() is None:
             try:
@@ -3347,6 +3384,7 @@ class DeskimonWidget(QWidget):
         self.skin = skin_id
         self.trigger_bounce(8.0)
         self.sound.play_chirp("happy")
+        self.save_user_settings()
         self.update()
 
     def set_mode(self, mode_id):
@@ -3357,6 +3395,7 @@ class DeskimonWidget(QWidget):
             self.fetch_weather_async(speak_when_done=False)
         elif mode_id == "music":
             self.update_mpris_metadata()
+        self.save_user_settings()
         self.update()
 
     def set_forced_emotion(self, emo_id):
@@ -3547,6 +3586,7 @@ class DeskimonWidget(QWidget):
             int(self.base_height * self.scale_factor),
         )
         self.layout_chat_ui()
+        self.save_user_settings()
         self.update()
 
     def toggle_always_on_top(self):
@@ -4005,7 +4045,9 @@ class DeskimonWidget(QWidget):
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self.is_dragging_pet = False
+            if self.is_dragging_pet:
+                self.is_dragging_pet = False
+                self.save_user_settings()
 
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -5146,7 +5188,13 @@ def main():
     screen = app.primaryScreen()
     if screen is not None:
         geom = screen.availableGeometry()
-        pet.move(geom.right() - pet.width() - 40, geom.bottom() - pet.height() - 40)
+        if pet.saved_pos_x is not None and pet.saved_pos_y is not None:
+            # Stelle sicher, dass die Position innerhalb des sichtbaren Bildschirms liegt
+            px = max(geom.left(), min(pet.saved_pos_x, geom.right() - pet.width()))
+            py = max(geom.top(), min(pet.saved_pos_y, geom.bottom() - pet.height()))
+            pet.move(px, py)
+        else:
+            pet.move(geom.right() - pet.width() - 40, geom.bottom() - pet.height() - 40)
 
     pet.show()
     sys.exit(app.exec())
