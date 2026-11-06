@@ -109,6 +109,7 @@ class RobotSoundEngine:
         self.signals = signals
         self.voice_enabled = True
         self.chirps_enabled = True
+        self.kwai_proc = None
         self.voice_id = "kawaii_girl"
         self.tts_voice = "de-DE-AmalaNeural"
         self.tts_rate = "+12%"
@@ -189,9 +190,45 @@ class RobotSoundEngine:
                 except Exception:
                     pass
 
+    def stop_kwai_whistle(self):
+        """Stoppt die Wiedergabe des Kwai-Marsches sofort."""
+        proc = getattr(self, "kwai_proc", None)
+        if proc is not None:
+            try:
+                proc.terminate()
+                proc.wait(timeout=0.4)
+            except Exception:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+            self.kwai_proc = None
+
     def play_kwai_whistle(self):
-        """Pfeift die weltberühmte Marsch-Melodie aus 'Die Brücke am Kwai' (Colonel Bogey March)."""
-        threading.Thread(target=self._synth_kwai_whistle_blocking, daemon=True).start()
+        """Spielt die authentische Marsch-Pfeifmelodie aus 'Die Brücke am Kwai' ab (bevorzugt mp3, Fallback Synthesizer)."""
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        mp3_path = os.path.join(base_dir, "assets", "audio", "kwai.mp3")
+        self.stop_kwai_whistle()
+        if os.path.exists(mp3_path):
+            threading.Thread(target=self._play_kwai_file_process, args=(mp3_path,), daemon=True).start()
+        else:
+            threading.Thread(target=self._synth_kwai_whistle_blocking, daemon=True).start()
+
+    def _play_kwai_file_process(self, path: str):
+        try:
+            cmd = None
+            if shutil.which("ffplay"):
+                cmd = ["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet", path]
+            elif shutil.which("mpv"):
+                cmd = ["mpv", "--no-video", "--really-quiet", path]
+            elif shutil.which("pw-play"):
+                cmd = ["pw-play", path]
+            if cmd:
+                self.kwai_proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                self.kwai_proc.wait()
+                self.kwai_proc = None
+        except Exception:
+            self.kwai_proc = None
 
     def _synth_kwai_whistle_blocking(self):
         """Synthetisiert die Colonel Bogey March Pfeif-Melodie mit weichem Vibrato und Hüllkurve."""
@@ -249,11 +286,11 @@ class RobotSoundEngine:
             pass
 
     def speak_and_whistle_kwai(self, text: str, mood: str = "happy"):
-        """Spricht einen Text und pfeift direkt im Anschluss die Kwai-Marschmelodie."""
+        """Spricht einen Text und spielt direkt im Anschluss die Kwai-Marschmelodie."""
         def _worker():
             self._speak_worker(text, mood)
             time.sleep(0.18)
-            self._synth_kwai_whistle_blocking()
+            self.play_kwai_whistle()
         threading.Thread(target=_worker, daemon=True).start()
 
     def speak(self, text: str, mood: str = "happy"):
@@ -3153,6 +3190,7 @@ class DeskimonWidget(QWidget):
 
     def trigger_arrived_home_reaction(self):
         """Wird ausgelöst, sobald Deskimoni wieder auf dem Hauptbildschirm angekommen ist."""
+        self.sound.stop_kwai_whistle()
         self.trigger_bounce(7.5)
         for _ in range(6):
             self.spawn_particle("heart")
@@ -3202,6 +3240,7 @@ class DeskimonWidget(QWidget):
 
     def cleanup_on_quit(self):
         """Sauberes Beenden von Audio-Streams und Hilfsprozessen beim Beenden."""
+        self.sound.stop_kwai_whistle()
         self.save_user_settings()
         self.stop_radio()
         if getattr(self, "norskmus_proc", None) and self.norskmus_proc.poll() is None:
@@ -4083,20 +4122,38 @@ class DeskimonWidget(QWidget):
                 dist_win = math.hypot(dx_win, dy_win)
                 if dist_win > 3.0:
                     self.is_stepping = True
-                    self.walk_phase += 0.22
-                    win_speed = 3.0 if self.has_manual_walk_target else 1.25
-                    nx = self.x() + int(round((dx_win / dist_win) * min(dist_win, win_speed)))
-                    ny = self.y() + int(round((dy_win / dist_win) * min(dist_win, win_speed)))
-                    self.move(nx, ny)
+                    if not hasattr(self, "_walk_float_x") or self._walk_float_x is None:
+                        self._walk_float_x = float(self.x())
+                        self._walk_float_y = float(self.y())
+
+                    if self.is_walking_home:
+                        win_speed = 0.85  # Ruhiger, gemächlicher Marschschritt passend zum Kwai-Lied
+                        self.walk_phase += 0.13
+                    elif self.has_manual_walk_target:
+                        win_speed = 2.5
+                        self.walk_phase += 0.22
+                    else:
+                        win_speed = 1.15
+                        self.walk_phase += 0.18
+
+                    step_x = (dx_win / dist_win) * min(dist_win, win_speed)
+                    step_y = (dy_win / dist_win) * min(dist_win, win_speed)
+                    self._walk_float_x += step_x
+                    self._walk_float_y += step_y
+                    self.move(int(round(self._walk_float_x)), int(round(self._walk_float_y)))
                     self.target_look_x = (dx_win / dist_win) * 8.0
                 else:
                     self.is_stepping = False
                     self.has_manual_walk_target = False
                     self.win_target_x = None
                     self.win_target_y = None
+                    self._walk_float_x = None
+                    self._walk_float_y = None
             else:
                 self.is_stepping = False
                 self.has_manual_walk_target = False
+                self._walk_float_x = None
+                self._walk_float_y = None
         else:
             self.is_stepping = False
 
@@ -4320,8 +4377,11 @@ class DeskimonWidget(QWidget):
                 self.emotion_until = time.time() + 2.2
                 self.spawn_particle("star")
 
+            self.sound.stop_kwai_whistle()
             self.is_dragging_pet = True
             self.is_walking_home = False
+            self._walk_float_x = None
+            self._walk_float_y = None
             self.drag_offset = event.globalPosition() - QPointF(self.pos())
             win = self.windowHandle()
             if win is not None:
