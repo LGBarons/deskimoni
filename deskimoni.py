@@ -432,6 +432,52 @@ class RobotSoundEngine:
                     pass
 
 
+class CursorRadarOverlay(QWidget):
+    """Zeigt bei der Mauszeiger-Suche ein leuchtendes, animiertes Radar-Spotlight exakt über dem Mauszeiger."""
+    def __init__(self, target_pos: QPoint):
+        super().__init__(None, Qt.WindowType.Tool | Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
+        self.size_box = 240
+        self.resize(self.size_box, self.size_box)
+        self.move(int(target_pos.x() - self.size_box // 2), int(target_pos.y() - self.size_box // 2))
+        self.anim_tick = 0
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self._tick)
+        self.timer.start(25)
+
+    def _tick(self):
+        self.anim_tick += 1
+        if self.anim_tick >= 140:  # Nach ca. 3.5 Sekunden automatisch schließen
+            self.timer.stop()
+            self.close()
+            return
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        cx, cy = self.width() / 2.0, self.height() / 2.0
+
+        # Pulsierende konzentrische Ringe in Cyan und Gold
+        for i in range(3):
+            phase = (self.anim_tick * 2.2 + i * 30) % 90
+            r = 14.0 + phase * 1.1
+            alpha = max(0, int(255 * (1.0 - phase / 90.0)))
+            color = QColor(0, 229, 255, alpha) if i % 2 == 0 else QColor(255, 235, 59, alpha)
+            painter.setPen(QPen(color, 2.8))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawEllipse(QPointF(cx, cy), r, r)
+
+        # Fadenkreuz & heller Leuchtpunkt in der Mitte
+        painter.setPen(QPen(QColor(255, 255, 255, 240), 2.0))
+        painter.drawLine(int(cx - 20), int(cy), int(cx + 20), int(cy))
+        painter.drawLine(int(cx), int(cy - 20), int(cx), int(cy + 20))
+        painter.setBrush(QBrush(QColor(255, 82, 82, 240)))
+        painter.drawEllipse(QPointF(cx, cy), 5.0, 5.0)
+
+
 class DeskimonWidget(QWidget):
     SKINS = [
         ("orbit", "🚀 Orbit (Astronaut)"),
@@ -1170,6 +1216,7 @@ class DeskimonWidget(QWidget):
         self.cursor_shake_ignore_until = 0.0
         self.last_cursor_hop_time = 0.0
         self._uinput_fd = None
+        self.cursor_radar_overlay = None
         self._init_uinput_shaker()
 
         # Manuelles Ziehen mit der Maus
@@ -2519,46 +2566,46 @@ class DeskimonWidget(QWidget):
 
     def shake_mouse_cursor(self):
         """Schüttelt den Mauszeiger schnell hin und her, damit KDE Plasma ihn groß aufbläst!"""
-        self.cursor_shake_ignore_until = time.time() + 1.3
+        self.cursor_shake_ignore_until = time.time() + 1.4
         threading.Thread(target=self._shake_cursor_worker, daemon=True).start()
 
     def _shake_cursor_worker(self):
         try:
             fd = self._uinput_fd
             if fd is not None:
-                # 6 flotte Hin-und-Her-Schwünge (löst KDE Plasma Shake-Cursor aus, landet exakt wieder am Startpunkt)
-                for _ in range(6):
-                    for dx, dy in ((38, -22), (38, -22), (38, -22), (38, -22), (38, -22)):
+                # 8 kräftige Hin-und-Her-Schwünge mit korrekter 64-Bit-Kernel-Struktur (24 Bytes: <qqHHi)
+                for _ in range(8):
+                    for dx, dy in ((45, -20), (45, -20), (45, -20)):
                         now_t = time.time()
                         sec = int(now_t)
                         usec = int((now_t - sec) * 1_000_000)
                         pkt = (
-                            struct.pack("<llHHi", sec, usec, 0x02, 0x00, dx)
-                            + struct.pack("<llHHi", sec, usec, 0x02, 0x01, dy)
-                            + struct.pack("<llHHi", sec, usec, 0x00, 0x00, 0)
+                            struct.pack("<qqHHi", sec, usec, 0x02, 0x00, dx)
+                            + struct.pack("<qqHHi", sec, usec, 0x02, 0x01, dy)
+                            + struct.pack("<qqHHi", sec, usec, 0x00, 0x00, 0)
                         )
                         os.write(fd, pkt)
-                        time.sleep(0.007)
-                    for dx, dy in ((-38, 22), (-38, 22), (-38, 22), (-38, 22), (-38, 22)):
+                        time.sleep(0.006)
+                    for dx, dy in ((-45, 20), (-45, 20), (-45, 20)):
                         now_t = time.time()
                         sec = int(now_t)
                         usec = int((now_t - sec) * 1_000_000)
                         pkt = (
-                            struct.pack("<llHHi", sec, usec, 0x02, 0x00, dx)
-                            + struct.pack("<llHHi", sec, usec, 0x02, 0x01, dy)
-                            + struct.pack("<llHHi", sec, usec, 0x00, 0x00, 0)
+                            struct.pack("<qqHHi", sec, usec, 0x02, 0x00, dx)
+                            + struct.pack("<qqHHi", sec, usec, 0x02, 0x01, dy)
+                            + struct.pack("<qqHHi", sec, usec, 0x00, 0x00, 0)
                         )
                         os.write(fd, pkt)
-                        time.sleep(0.007)
+                        time.sleep(0.006)
             else:
                 # Fallback via QCursor.setPos (X11/XWayland)
                 orig = QCursor.pos()
                 for _ in range(6):
                     for step in range(1, 6):
-                        QCursor.setPos(orig.x() + step * 34, orig.y() - step * 18)
+                        QCursor.setPos(orig.x() + step * 38, orig.y() - step * 20)
                         time.sleep(0.008)
                     for step in range(4, -1, -1):
-                        QCursor.setPos(orig.x() + step * 34, orig.y() - step * 18)
+                        QCursor.setPos(orig.x() + step * 38, orig.y() - step * 20)
                         time.sleep(0.008)
                 QCursor.setPos(orig)
         except Exception:
@@ -2568,7 +2615,7 @@ class DeskimonWidget(QWidget):
             self.cursor_shake_ignore_until = time.time() + 0.35
 
     def start_cursor_search_now(self):
-        """Startet die Mauszeiger-Hilfe: Richtungsanzeige einblenden & Mauszeiger schütteln (damit er groß wird)."""
+        """Startet die Mauszeiger-Hilfe: Radar-Spotlight einblenden, Richtungsanzeige & Mauszeiger schütteln."""
         self.cursor_search_state = "found"
         self.cursor_search_started_at = time.time()
         self.last_cursor_hop_time = time.time()
@@ -2577,7 +2624,34 @@ class DeskimonWidget(QWidget):
         self.emotion_until = time.time() + 8.0
         self.trigger_bounce(8.0)
         self.spawn_particle("star")
-        self.show_bubble("🧭 Schau mal! Ich zeige zum Mauszeiger und schüttle ihn groß! ✨", 8.0)
+
+        # Finde heraus, auf welchem Monitor sich der Mauszeiger befindet
+        c_pos = QCursor.pos()
+        cursor_screen = None
+        for s in QApplication.screens():
+            if s.geometry().contains(c_pos):
+                cursor_screen = s
+                break
+        if cursor_screen is None:
+            cursor_screen = QApplication.screenAt(c_pos) or QApplication.primaryScreen()
+
+        pet_screen = self.get_current_screen()
+        s_name = cursor_screen.name() if cursor_screen else "Desktop"
+        if cursor_screen is not None and pet_screen is not None and cursor_screen != pet_screen:
+            hint = f"auf Neben-Monitor {s_name}!"
+        else:
+            hint = f"hier auf Monitor {s_name}!"
+
+        # Leuchtendes Radar-Spotlight direkt am Mauszeiger anzeigen!
+        if getattr(self, "cursor_radar_overlay", None) is not None:
+            try:
+                self.cursor_radar_overlay.close()
+            except Exception:
+                pass
+        self.cursor_radar_overlay = CursorRadarOverlay(c_pos)
+        self.cursor_radar_overlay.show()
+
+        self.show_bubble(f"🧭 Mauszeiger gefunden {hint} ✨", 6.5)
         self.shake_mouse_cursor()
 
     def prompt_gemini_api_key(self):
@@ -4029,6 +4103,11 @@ class DeskimonWidget(QWidget):
     def cleanup_on_quit(self):
         """Sauberes Beenden von Audio-Streams und Hilfsprozessen beim Beenden."""
         self.sound.stop_kwai_whistle()
+        if getattr(self, "cursor_radar_overlay", None) is not None:
+            try:
+                self.cursor_radar_overlay.close()
+            except Exception:
+                pass
         self.save_user_settings()
         self.stop_radio()
         if getattr(self, "norskmus_proc", None) and self.norskmus_proc.poll() is None:
@@ -4815,11 +4894,17 @@ class DeskimonWidget(QWidget):
         if now < self.cursor_shake_ignore_until:
             # Eigene Schüttel-Bewegung von Deskimoni ignorieren!
             self.last_global_cursor_pos = global_cursor
-        elif cursor_moved_dist > 3.0:
+        elif cursor_moved_dist > 8.0:
             self.last_global_cursor_pos = global_cursor
             self.last_cursor_move_time = now
-            if self.cursor_search_state in ("seeking", "found") and (now - self.cursor_search_started_at) > 1.6:
+            if self.cursor_search_state in ("seeking", "found") and (now - self.cursor_search_started_at) > 1.2:
                 self.cursor_search_state = "idle"
+                if getattr(self, "cursor_radar_overlay", None) is not None:
+                    try:
+                        self.cursor_radar_overlay.close()
+                    except Exception:
+                        pass
+                    self.cursor_radar_overlay = None
                 self.sound.play_chirp("happy")
                 self.trigger_bounce(6.0)
                 self.show_bubble("🎉 Da bist du ja wieder! Mauszeiger erfolgreich gefunden!", 3.5)
@@ -4830,15 +4915,22 @@ class DeskimonWidget(QWidget):
         ):
             self.start_cursor_search_now()
 
-        # Wenn der Mauszeiger-Sucher aktiv ist: Richtungsanzeige + alle 5s kurz den Mauszeiger groß schütteln!
+        # Wenn der Mauszeiger-Sucher aktiv ist: Richtungsanzeige + alle 4.5s kurz Radar erneuern & Mauszeiger schütteln!
         if self.cursor_search_state in ("seeking", "found"):
-            if now - self.last_cursor_hop_time > 5.0:
+            if now - self.last_cursor_hop_time > 4.5:
                 self.last_cursor_hop_time = now
                 self.trigger_bounce(6.5)
                 self.spawn_particle("star")
                 self.shake_mouse_cursor()
+                if getattr(self, "cursor_radar_overlay", None) is not None:
+                    try:
+                        self.cursor_radar_overlay.close()
+                    except Exception:
+                        pass
+                self.cursor_radar_overlay = CursorRadarOverlay(global_cursor)
+                self.cursor_radar_overlay.show()
                 if time.time() >= self.bubble_until:
-                    self.show_bubble("🧭 Schau mal! Ich schüttle deinen Mauszeiger nochmal groß! ✨", 5.0)
+                    self.show_bubble("🧭 Schau mal! Ich zeige zum Mauszeiger und hebe ihn hervor! ✨", 4.5)
 
         # Prüfen, ob das Ziehen mit der Maus beendet wurde (auch wenn Wayland den Release verschluckt hat)
         if self.is_dragging_pet and not (QApplication.mouseButtons() & Qt.MouseButton.LeftButton):
@@ -4950,26 +5042,20 @@ class DeskimonWidget(QWidget):
                 self.is_blinking = False
                 self.next_blink_time = now + random.uniform(2.2, 5.5)
 
-        # Augen-Fokus (folgt dem Mauszeiger – beim Suchen sogar über den ganzen Bildschirm!)
-        local_cursor = self.mapFromGlobal(global_cursor)
-        center_x = (self.body_offset_x + self.walk_offset_x + 120) * self.scale_factor
-        center_y = (self.body_offset_y + self.walk_offset_y + 126) * self.scale_factor
-        dist = math.hypot(local_cursor.x() - center_x, local_cursor.y() - center_y)
+        # Augen-Fokus (folgt dem Mauszeiger präzise – über alle Monitore hinweg!)
+        center_global_x = self.x() + (self.body_offset_x + self.walk_offset_x + 120.0) * self.scale_factor
+        center_global_y = self.y() + (self.body_offset_y + self.walk_offset_y + 126.0) * self.scale_factor
+        dx_g = global_cursor.x() - center_global_x
+        dy_g = global_cursor.y() - center_global_y
+        dist_g = math.hypot(dx_g, dy_g)
 
-        if dist < 500 or self.cursor_search_state in ("seeking", "found"):
-            dx = (local_cursor.x() - center_x) / 160.0
-            dy = (local_cursor.y() - center_y) / 160.0
-            self.target_look_x = max(-1.0, min(1.0, dx)) * 11.0
-            self.target_look_y = max(-1.0, min(1.0, dy)) * 8.0
+        if dist_g > 15.0:
+            norm_factor = max(180.0, min(700.0, dist_g * 0.45))
+            self.target_look_x = max(-1.0, min(1.0, dx_g / norm_factor)) * 11.0
+            self.target_look_y = max(-1.0, min(1.0, dy_g / norm_factor)) * 8.0
         else:
-            if now - self.last_random_look > 3.2:
-                self.last_random_look = now
-                if random.random() < 0.65:
-                    self.target_look_x = random.uniform(-8.0, 8.0)
-                    self.target_look_y = random.uniform(-4.5, 4.5)
-                else:
-                    self.target_look_x = 0.0
-                    self.target_look_y = 0.0
+            self.target_look_x = 0.0
+            self.target_look_y = 0.0
 
         self.look_x += (self.target_look_x - self.look_x) * 0.14
         self.look_y += (self.target_look_y - self.look_y) * 0.14
@@ -5327,32 +5413,40 @@ class DeskimonWidget(QWidget):
         painter.restore()
 
     def draw_cursor_finder_beacon(self, painter: QPainter):
-        """Zeichnet einen animierten Leuchtpfeil / Radar-Indikator in Richtung des gesuchten Mauszeigers."""
+        """Zeichnet einen animierten Leuchtpfeil / Radar-Indikator exakt in Richtung des gesuchten Mauszeigers."""
         global_cursor = QCursor.pos()
-        local_cursor = self.mapFromGlobal(global_cursor)
         cx_body = 120.0
         cy_body = 145.0
-        target_x = local_cursor.x() / self.scale_factor - (self.body_offset_x + self.walk_offset_x)
-        target_y = local_cursor.y() / self.scale_factor - (self.body_offset_y + self.walk_offset_y)
+        breath_y = math.sin(self.tick_count * 0.08) * 1.5
 
-        dx = target_x - cx_body
-        dy = target_y - cy_body
-        angle = math.atan2(dy, dx)
-        pulse = 4.0 * math.sin(self.tick_count * 0.25)
+        # Berechne den globalen Mittelpunkt von Deskimonis Körper auf dem Desktop
+        center_global_x = self.x() + (self.body_offset_x + self.walk_offset_x + cx_body) * self.scale_factor
+        center_global_y = self.y() + (self.body_offset_y + self.walk_offset_y + cy_body + breath_y) * self.scale_factor
+
+        dx_global = global_cursor.x() - center_global_x
+        dy_global = global_cursor.y() - center_global_y
+        angle_global = math.atan2(dy_global, dx_global)
+
+        # Kompensiere eventuelle Körper-Neigung beim Laufen
+        waddle_tilt = math.sin(self.walk_phase) * 3.5 if self.is_stepping else 0.0
+        angle_painter = angle_global - math.radians(waddle_tilt)
+
+        pulse = 5.0 * math.sin(self.tick_count * 0.25)
+        beacon_dist = 94.0 + pulse
 
         painter.save()
-        painter.translate(cx_body + math.cos(angle) * (92.0 + pulse), cy_body + math.sin(angle) * (92.0 + pulse))
-        painter.rotate(math.degrees(angle))
+        painter.translate(cx_body + math.cos(angle_painter) * beacon_dist, cy_body + math.sin(angle_painter) * beacon_dist)
+        painter.rotate(math.degrees(angle_painter))
 
-        # Leuchtender Pfeil Richtung Mauszeiger
+        # Leuchtender Richtungspfeil
         arrow = QPainterPath()
-        arrow.moveTo(14, 0)
-        arrow.lineTo(-8, -9)
-        arrow.lineTo(-4, 0)
-        arrow.lineTo(-8, 9)
+        arrow.moveTo(18, 0)
+        arrow.lineTo(-10, -11)
+        arrow.lineTo(-5, 0)
+        arrow.lineTo(-10, 11)
         arrow.closeSubpath()
 
-        painter.setPen(QPen(QColor("#ffffff"), 1.5))
+        painter.setPen(QPen(QColor("#ffffff"), 2.0))
         painter.setBrush(QColor("#ffeb3b") if self.cursor_search_state == "found" else QColor("#00e5ff"))
         painter.drawPath(arrow)
         painter.restore()
