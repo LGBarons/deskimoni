@@ -85,10 +85,11 @@ from PyQt6.QtWidgets import (
 
 
 class WorkerSignals(QObject):
-    reply_ready = pyqtSignal(str, str)  # (Antwort-Text, Emotion)
-    speech_state = pyqtSignal(bool)     # True = spricht gerade (Lip-Sync aktiv)
-    mic_state = pyqtSignal(str)         # "idle", "recording", "recognizing"
-    mic_result = pyqtSignal(str)        # Erkannter Text vom Mikrofon
+    reply_ready = pyqtSignal(str, str)          # (Antwort-Text, Emotion)
+    greeting_ready = pyqtSignal(str, str, str)  # (Sprach-Text, Bubble-Zusatz, Emotion)
+    speech_state = pyqtSignal(bool)             # True = spricht gerade (Lip-Sync aktiv)
+    mic_state = pyqtSignal(str)                 # "idle", "recording", "recognizing"
+    mic_result = pyqtSignal(str)                # Erkannter Text vom Mikrofon
 
 
 class RobotSoundEngine:
@@ -885,6 +886,7 @@ class DeskimonWidget(QWidget):
 
         self.signals = WorkerSignals()
         self.signals.reply_ready.connect(self.on_ai_reply)
+        self.signals.greeting_ready.connect(self.on_startup_greeting_ready)
         self.signals.speech_state.connect(self.on_speech_state)
         self.signals.mic_state.connect(self.on_mic_state)
         self.signals.mic_result.connect(self.on_mic_result)
@@ -2699,8 +2701,135 @@ class DeskimonWidget(QWidget):
             pass
         self.ollama_available = False
 
+    def _get_random_offline_greeting(self, hour: int, lang: str) -> str:
+        """Gibt eine passende, abwechslungsreiche Offline-Begrüßung mit Nutzername und Tageszeit zurück."""
+        user_name = self.user_name.strip() if getattr(self, "user_name", "") else ""
+        has_custom_name = bool(user_name and user_name.lower() not in ("freund", "friend", "venn"))
+        name = user_name if has_custom_name else ""
+
+        if lang == "en":
+            if has_custom_name:
+                if 5 <= hour < 11:
+                    return random.choice([
+                        f"Good morning, {name}! Great to see you, let's start the day!",
+                        f"Morning, {name}! Ready to conquer the desktop together?",
+                        f"Good morning, {name}! Coffee ready? I'm excited for today!",
+                    ])
+                elif 11 <= hour < 18:
+                    return random.choice([
+                        f"Hello {name}! I'm awake and ready on your desktop!",
+                        f"Hey {name}! Awesome to have you back at the computer!",
+                        f"Hi {name}! Your companion {self.bot_name} is online!",
+                    ])
+                elif 18 <= hour < 23:
+                    return random.choice([
+                        f"Good evening, {name}! Great to see you! How was your day?",
+                        f"Evening, {name}! Time to relax and enjoy some free time!",
+                        f"Hey {name}! Done for the day? Glad to keep you company!",
+                    ])
+                else:
+                    return random.choice([
+                        f"Oh, {name}, still awake? I'm happy to keep you company!",
+                        f"Hey night owl {name}! Working late? Don't stay up too long!",
+                    ])
+            else:
+                if 5 <= hour < 11:
+                    return "Good morning! Great to see you, let's start the day!"
+                elif 11 <= hour < 18:
+                    return f"Hello! Your desktop companion {self.bot_name} is awake and ready!"
+                elif 18 <= hour < 23:
+                    return "Good evening! Great to see you! How was your day?"
+                else:
+                    return "Oh, still awake so late? I'm happy to keep you company!"
+
+        elif lang == "nb":
+            if has_custom_name:
+                if 5 <= hour < 11:
+                    return random.choice([
+                        f"God morgen, {name}! Koselig å se deg, la oss starte dagen!",
+                        f"Morn {name}! Klar for en fin dag foran PC-en?",
+                        f"God morgen {name}! Kaffen er klar? Jeg er klar for dagen!",
+                    ])
+                elif 11 <= hour < 18:
+                    return random.choice([
+                        f"Hei {name}! Jeg er lys våken og klar på skrivebordet ditt!",
+                        f"Heihei {name}! Fint at vi sitter ved datamaskinen sammen igjen!",
+                        f"Hallo {name}! Din {self.bot_name} passer på vinduene dine!",
+                    ])
+                elif 18 <= hour < 23:
+                    return random.choice([
+                        f"God kveld, {name}! Koselig at du er her! Hvordan var dagen?",
+                        f"Hei {name}! Tid for litt avslapning etter en lang dag!",
+                        f"God kveld {name}! Fint å holde deg med selskap i kveld!",
+                    ])
+                else:
+                    return random.choice([
+                        f"Er du våken ennå, {name}? Jeg holder deg gjerne med selskap!",
+                        f"Hei nattugle {name}! Jobber du sent? Ikke glem å sove!",
+                    ])
+            else:
+                if 5 <= hour < 11:
+                    return "God morgen! Koselig å se deg, la oss starte dagen!"
+                elif 11 <= hour < 18:
+                    return f"Hei! Din skrivebordsvenn {self.bot_name} er våken og klar!"
+                elif 18 <= hour < 23:
+                    return "God kveld! Koselig at du er her! Hvordan var dagen din?"
+                else:
+                    return "Er du våken så sent? Jeg holder deg gjerne med selskap!"
+
+        # Deutsch (Standard)
+        if has_custom_name:
+            if 5 <= hour < 11:
+                return random.choice([
+                    f"Guten Morgen, {name}! Schön dich zu sehen, lass uns gut in den Tag starten!",
+                    f"Morgen, {name}! Ich hoffe, du hast gut geschlafen. Kaffee steht bereit?",
+                    f"Guten Morgen {name}! Bereit für neue Ideen? Ich bin startklar!",
+                    f"Einen wunderschönen guten Morgen, {name}! Schön, dass wir wieder am PC sind!",
+                ])
+            elif 11 <= hour < 18:
+                return random.choice([
+                    f"Hallöchen, {name}! Ich bin hellwach und sitze startklar auf deinem Desktop!",
+                    f"Hey {name}! Schön, dass wir wieder zusammen am PC sitzen!",
+                    f"Hallo {name}! Dein kleiner {self.bot_name} ist online und passt auf dich auf!",
+                    f"Na {name}? Bereit für den Tag? Lass uns loslegen!",
+                ])
+            elif 18 <= hour < 23:
+                return random.choice([
+                    f"Guten Abend, {name}! Schön, dass du da bist! Wie war dein Tag?",
+                    f"Nabend {name}! Zeit für ein bisschen Feierabend-Entspannung!",
+                    f"Hey {name}! Geschafft für heute? Ich leiste dir gerne Gesellschaft am PC.",
+                    f"Guten Abend {name}! Schön dich zu sehen. Wie lief alles heute?",
+                ])
+            else:
+                return random.choice([
+                    f"Oh {name}, noch so spät wach? Ich leiste dir gerne Gesellschaft!",
+                    f"Hey Nacht-Eule {name}! Geht es noch lang? Ich halte dir die Treue!",
+                    f"Noch am Arbeiten, {name}? Vergiss nicht, bald schlafen zu gehen!",
+                ])
+        else:
+            if 5 <= hour < 11:
+                return random.choice([
+                    "Guten Morgen! Schön dich zu sehen, lass uns in den Tag starten!",
+                    f"Morgen! Dein kleiner {self.bot_name} ist wach und bereit!",
+                ])
+            elif 11 <= hour < 18:
+                return random.choice([
+                    "Hallöchen! Ich bin wach und bereit auf deinem Desktop!",
+                    f"Hey! Dein {self.bot_name} ist online und passt auf deine Fenster auf!",
+                ])
+            elif 18 <= hour < 23:
+                return random.choice([
+                    "Guten Abend! Schön, dass du da bist! Wie war dein Tag?",
+                    "Nabend! Zeit für ein bisschen Feierabend-Entspannung!",
+                ])
+            else:
+                return random.choice([
+                    "Oh, noch so spät wach? Ich leiste dir gerne Gesellschaft!",
+                    "Hey Nacht-Eule! Ich passe auf deinen Bildschirm auf!",
+                ])
+
     def greet_user_on_startup(self):
-        """Begrüßt den Nutzer je nach Tageszeit beim Starten mit Stimme & Sprechblase."""
+        """Begrüßt den Nutzer je nach Tageszeit beim Starten persönlich (per KI oder smarter Offline-Auswahl)."""
         self.detect_ollama_status()
         if self.gemini_api_key and (self.ai_provider == "gemini" or not self.ollama_available):
             self.ai_provider = "gemini"
@@ -2709,14 +2838,36 @@ class DeskimonWidget(QWidget):
         self.update_model_button_ui()
 
         hour = datetime.now().hour
-        if 5 <= hour < 11:
-            greeting = "Guten Morgen! Schön dich zu sehen, lass uns in den Tag starten!"
-        elif 11 <= hour < 18:
-            greeting = "Hallöchen! Ich bin wach und bereit auf deinem Desktop!"
-        elif 18 <= hour < 23:
-            greeting = "Guten Abend! Schön, dass du da bist! Wie war dein Tag?"
+        lang = getattr(self, "app_language", "de")
+
+        has_ollama_models = bool(self.installed_ollama_models)
+        has_ai = (self.gemini_api_key and (self.ai_provider == "gemini" or not self.ollama_available or not has_ollama_models)) or (self.ollama_available and has_ollama_models)
+
+        if has_ai:
+            # Aufwach-Effekt: Neugieriger Piepser, kleiner Streck-Hüpfer und Aufwach-Bubble
+            self.sound.play_chirp("curious")
+            self.trigger_bounce(4.0)
+            wake_msg = {
+                "de": "🥱 *streckt sich und wacht auf...*",
+                "en": "🥱 *stretches and wakes up...*",
+                "nb": "🥱 *strekker seg og våkner...*",
+            }.get(lang, "🥱 *streckt sich und wacht auf...*")
+            self.show_bubble(wake_msg, 2.8)
+
+            # KI-Begrüßung im Hintergrund abfragen
+            threading.Thread(target=self._generate_ai_startup_greeting_worker, daemon=True).start()
         else:
-            greeting = "Oh, noch so spät wach? Ich leiste dir gerne Gesellschaft!"
+            # Schnelle Offline-Begrüßung mit Name
+            greeting = self._get_random_offline_greeting(hour, lang)
+            bubble_extra = "\n(🔑 Rechtsklick -> Sprache & KI für Gemini API-Key!)"
+            self.on_startup_greeting_ready(greeting, bubble_extra, "happy")
+
+    def _generate_ai_startup_greeting_worker(self):
+        hour = datetime.now().hour
+        lang = getattr(self, "app_language", "de")
+        user_name = self.user_name.strip() if getattr(self, "user_name", "") else ""
+        has_custom_name = bool(user_name and user_name.lower() not in ("freund", "friend", "venn"))
+        user_label = user_name if has_custom_name else "deinem menschlichen Begleiter"
 
         if self.ai_provider == "gemini" and self.gemini_api_key:
             bubble_extra = "\n(☁️ Gemini Cloud-KI aktiv | Doppelklick auf Bauch-Knopf = Chat)"
@@ -2725,12 +2876,81 @@ class DeskimonWidget(QWidget):
         else:
             bubble_extra = "\n(💡 Doppelklick auf meinen Bauch-Knopf öffnet Chat & Buttons)"
 
-        self.current_emotion = "happy"
+        greeting = ""
+        emotion = "happy"
+
+        time_str = "Morgen" if 5 <= hour < 11 else ("Tag" if 11 <= hour < 18 else ("Abend" if 18 <= hour < 23 else "Nacht"))
+        lang_instruction = {
+            "de": "auf Deutsch",
+            "en": "in English",
+            "nb": "på norsk (bokmål)",
+        }.get(lang, "auf Deutsch")
+
+        name_instruction = f"Sprich {user_name} direkt mit Namen an." if has_custom_name else "Begrüße herzlich."
+
+        ai_prompt = (
+            f"Du bist {self.bot_name}, ein kleiner liebenswerter Desktop-Roboter auf dem PC. "
+            f"Du wachst gerade auf. Es ist {time_str} ({hour:02d}:00 Uhr). "
+            f"Erfinde eine kurze, fröhliche und abwechslungsreiche Begrüßung für {user_label} {lang_instruction}. "
+            f"{name_instruction} "
+            f"Maximal 1 bis 2 kurze Sätze (höchstens 20 Wörter). Antworte direkt mit dem Begrüßungssatz, keine Anführungszeichen, kein Denkprozess."
+        )
+
+        try:
+            has_ollama_models = bool(self.installed_ollama_models)
+            use_gemini = self.gemini_api_key and (self.ai_provider == "gemini" or not self.ollama_available or not has_ollama_models)
+
+            if use_gemini:
+                raw = self._query_gemini_api(ai_prompt)
+                if raw:
+                    raw = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL).strip()
+                    m = re.match(r"^\[(happy|love|excited|chill|sleepy|dizzy|angry)\]\s*", raw, re.I)
+                    if m:
+                        emotion = m.group(1).lower()
+                        raw = raw[m.end():].strip()
+                    if raw and not raw.startswith("[dizzy]") and len(raw) > 5:
+                        greeting = raw.strip(' "\'„“«»')
+
+            if not greeting and self.ollama_available and has_ollama_models:
+                payload = {
+                    "model": self.ollama_model,
+                    "messages": [
+                        {"role": "system", "content": f"Du bist {self.bot_name}. Begrüße kurz und herzlich."},
+                        {"role": "user", "content": ai_prompt},
+                    ],
+                    "stream": False,
+                    "options": {"temperature": 0.85, "num_predict": 45},
+                }
+                if self.ollama_model.startswith("qwen3"):
+                    payload["think"] = False
+                resp = requests.post("http://127.0.0.1:11434/api/chat", json=payload, timeout=3.5)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    raw = data.get("message", {}).get("content", "")
+                    raw = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL).strip()
+                    m = re.match(r"^\[(happy|love|excited|chill|sleepy|dizzy|angry)\]\s*", raw, re.I)
+                    if m:
+                        emotion = m.group(1).lower()
+                        raw = raw[m.end():].strip()
+                    if raw and len(raw) > 5:
+                        greeting = raw.strip(' "\'„“«»')
+        except Exception as e:
+            print(f"[AI Startup Greeting Warning] {e}")
+
+        if not greeting:
+            greeting = self._get_random_offline_greeting(hour, lang)
+
+        self.signals.greeting_ready.emit(greeting, bubble_extra, emotion)
+
+    def on_startup_greeting_ready(self, greeting: str, bubble_extra: str, emotion: str):
+        """Wird aufgerufen, sobald die Begrüßung feststeht (per KI oder Fallback)."""
+        self.current_emotion = emotion
         self.emotion_until = time.time() + 6.0
         self.trigger_bounce(8.0)
-        self.spawn_particle("heart")
-        self.show_bubble(f"👋 {greeting}{bubble_extra}", 8.0)
-        self.sound.speak(greeting, "happy")
+        self.spawn_particle("heart" if emotion in ("love", "happy") else "star")
+        full_bubble = f"👋 {greeting}{bubble_extra}" if bubble_extra else f"👋 {greeting}"
+        self.show_bubble(full_bubble, 8.5)
+        self.sound.speak(greeting, emotion)
 
     # --- Chat, Sprache & Mikrofon ---
     def toggle_voice(self):
