@@ -3392,7 +3392,7 @@ class DeskimonWidget(QWidget):
             return True
 
         if any(w in low for w in ("geh nach hause", "geh heim", "nach hause", "marschier nach hause")):
-            self.trigger_walk_home_reaction()
+            self.start_walk_home_to_primary()
             return True
 
         # --- 8f. 🕺 Tanzen & Headbangen ---
@@ -3902,6 +3902,62 @@ class DeskimonWidget(QWidget):
         else:
             self.show_bubble("🎵 *pfeift ein Lied* 🎶\n(Tipp: Eigene MP3s in Musikordner ablegen!)", 5.0)
         self.sound.play_gohome_music()
+
+    def get_current_screen(self):
+        """Gibt den Bildschirm zurück, auf dem sich Deskimoni aktuell befindet."""
+        win = self.windowHandle()
+        if win is not None and win.screen() is not None:
+            return win.screen()
+        center = self.geometry().center()
+        s = QApplication.screenAt(center)
+        if s is not None:
+            return s
+        return self.screen() or QApplication.primaryScreen()
+
+    def start_walk_home_to_primary(self):
+        """Startet den gemütlichen Heimweg zum Hauptbildschirm (z. B. nach dem Ziehen auf einen Zweitmonitor)."""
+        primary = QApplication.primaryScreen()
+        if primary is None:
+            return
+        p_geom = primary.availableGeometry()
+
+        cur_x = self.x()
+        cur_y = self.y()
+
+        if cur_x >= p_geom.right():
+            target_x = p_geom.right() - self.width() - 50
+        elif cur_x <= p_geom.left():
+            target_x = p_geom.left() + 50
+        else:
+            target_x = max(p_geom.left() + 50, min(p_geom.right() - self.width() - 50, cur_x))
+
+        target_y = max(p_geom.top() + 60, min(p_geom.bottom() - self.height() - 60, cur_y))
+
+        self.win_target_x = target_x
+        self.win_target_y = target_y
+        self.is_walking_home = True
+        self.has_manual_walk_target = True
+        self._walk_float_x = float(self.x())
+        self._walk_float_y = float(self.y())
+
+        self.trigger_walk_home_reaction()
+
+    def _check_multimonitor_dropped(self):
+        """Prüft nach dem Loslassen der Maus, ob Deskimoni auf einen Zweitmonitor gezogen wurde."""
+        screens = QApplication.screens()
+        if len(screens) <= 1:
+            return
+        primary = QApplication.primaryScreen()
+        if primary is None:
+            return
+        cur_screen = self.get_current_screen()
+        # Nur wenn er tatsächlich auf einem anderen Bildschirm als dem Hauptbildschirm abgesetzt wurde:
+        if cur_screen is not None and cur_screen != primary:
+            QTimer.singleShot(400, self.start_walk_home_to_primary)
+        else:
+            if self.is_walking_home:
+                self.is_walking_home = False
+                self.sound.stop_gohome_music()
 
     def trigger_walk_home_reaction(self):
         """Wird ausgelöst, wenn Deskimoni merkt, dass er auf einem fremden Monitor ist und nach Hause marschiert."""
@@ -4784,49 +4840,40 @@ class DeskimonWidget(QWidget):
                 if time.time() >= self.bubble_until:
                     self.show_bubble("🧭 Schau mal! Ich schüttle deinen Mauszeiger nochmal groß! ✨", 5.0)
 
-        # Langsam über den Bildschirm watscheln, wenn ihm langweilig ist (ohne den Rahmen zu verlassen!)
+        # Prüfen, ob das Ziehen mit der Maus beendet wurde (auch wenn Wayland den Release verschluckt hat)
+        if self.is_dragging_pet and not (QApplication.mouseButtons() & Qt.MouseButton.LeftButton):
+            self.is_dragging_pet = False
+            self.save_user_settings()
+            self._check_multimonitor_dropped()
+
+        # Langsam über den Bildschirm watscheln, wenn ihm langweilig ist (ohne den aktuellen Monitor zu verlassen!)
         if (self.roaming_enabled or self.has_manual_walk_target) and not self.is_dragging_pet:
-            screen = QApplication.primaryScreen()
-            if screen is not None:
-                geom = screen.availableGeometry()
-                # Prüfen, ob Deskimoni sich auf einem anderen Monitor außerhalb des Hauptbildschirms befindet
-                is_outside_primary = (
-                    self.x() < geom.left() - 35
-                    or self.x() > geom.right() - self.width() + 35
-                    or self.y() < geom.top() - 35
-                    or self.y() > geom.bottom() - self.height() + 35
-                )
+            cur_screen = self.get_current_screen()
+            primary_screen = QApplication.primaryScreen()
 
-                if is_outside_primary:
-                    if not self.is_walking_home:
-                        self.is_walking_home = True
-                        target_home_x = max(geom.left() + 40, min(geom.right() - self.width() - 40, self.x()))
-                        target_home_y = max(geom.top() + 40, min(geom.bottom() - self.height() - 40, self.y()))
-                        if self.x() < geom.left():
-                            target_home_x = geom.left() + 50
-                        elif self.x() > geom.right() - self.width():
-                            target_home_x = geom.right() - self.width() - 50
-                        if self.y() < geom.top():
-                            target_home_y = geom.top() + 50
-                        elif self.y() > geom.bottom() - self.height():
-                            target_home_y = geom.bottom() - self.height() - 50
+            # Wenn er gerade nach Hause läuft: Prüfen, ob er auf dem Hauptbildschirm angekommen ist
+            if self.is_walking_home and primary_screen is not None:
+                p_geom = primary_screen.availableGeometry()
+                center_pt = self.geometry().center()
+                # Sobald sein Schwerpunkt auf dem Hauptbildschirm angekommen ist
+                if p_geom.contains(center_pt):
+                    self.is_walking_home = False
+                    self.has_manual_walk_target = False
+                    self.win_target_x = None
+                    self.win_target_y = None
+                    self._walk_float_x = None
+                    self._walk_float_y = None
+                    self.sound.stop_gohome_music()
+                    self.trigger_arrived_home_reaction()
 
-                        self.win_target_x = target_home_x
-                        self.win_target_y = target_home_y
-                        self.has_manual_walk_target = True
-                        self.trigger_walk_home_reaction()
-                else:
-                    if self.is_walking_home:
-                        self.is_walking_home = False
-                        self.trigger_arrived_home_reaction()
-
-            if self.roaming_enabled and not self.has_manual_walk_target and now >= self.next_walk_decision:
-                if random.random() < 0.65 and screen is not None:
-                    geom = screen.availableGeometry()
-                    tx = self.x() + random.randint(-160, 160)
-                    ty = self.y() + random.randint(-75, 75)
-                    self.win_target_x = max(geom.left() + 10, min(geom.right() - self.width() - 10, tx))
-                    self.win_target_y = max(geom.top() + 10, min(geom.bottom() - self.height() - 10, ty))
+            # Zufälliges Spazierengehen auf dem AKTUELLEN Bildschirm (bleibt strikt auf diesem Monitor)
+            if self.roaming_enabled and not self.has_manual_walk_target and not self.is_walking_home and now >= self.next_walk_decision:
+                if random.random() < 0.65 and cur_screen is not None:
+                    geom = cur_screen.availableGeometry()
+                    tx = self.x() + random.randint(-140, 140)
+                    ty = self.y() + random.randint(-60, 60)
+                    self.win_target_x = max(geom.left() + 25, min(geom.right() - self.width() - 25, tx))
+                    self.win_target_y = max(geom.top() + 25, min(geom.bottom() - self.height() - 25, ty))
                     self.walk_target_x = random.uniform(-10.0, 10.0)
                     self.walk_target_y = random.uniform(-4.0, 4.0)
                     self.next_walk_decision = now + random.uniform(7.0, 14.0)
@@ -4881,6 +4928,10 @@ class DeskimonWidget(QWidget):
                     self.win_target_y = None
                     self._walk_float_x = None
                     self._walk_float_y = None
+                    if self.is_walking_home:
+                        self.is_walking_home = False
+                        self.sound.stop_gohome_music()
+                        self.trigger_arrived_home_reaction()
             else:
                 self.is_stepping = False
                 self.has_manual_walk_target = False
@@ -5128,6 +5179,7 @@ class DeskimonWidget(QWidget):
             if self.is_dragging_pet:
                 self.is_dragging_pet = False
                 self.save_user_settings()
+                self._check_multimonitor_dropped()
 
     def mouseDoubleClickEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
