@@ -20,6 +20,7 @@ Mit **NorskMus** ist zudem ein spezialisierter Lernbegleiter für die norwegisch
   * 👻 *Cozy Ghost*
   * 🚀 *Space Bot*
 * **Window Physics & Dragging**: Kann frei auf dem Desktop bewegt, minimiert oder an den Rand gepinnt werden.
+* **Multimonitor-Heimweg & eigene Musik 🏠**: Wird das Pet auf einen Zweitbildschirm gezogen, watschelt es gemütlich zurück zum Hauptbildschirm und spielt dabei Musik oder pfeift. Eigene Lieblingssongs (`.mp3`, `.wav`, `.ogg`, `.flac`) können einfach in `~/.config/deskimoni/sounds/gohome/` abgelegt werden!
 
 ### 🧠 KI-Gehirn & Gedächtnis
 * **Ollama (Lokal)** & **Google Gemini (Cloud-Fallback)**: Reagiert direkt auf Fragen, Aufgaben oder Unterhaltungen.

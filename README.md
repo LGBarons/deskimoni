@@ -24,6 +24,7 @@ Also included is **NorskMus**, a dedicated Norwegian language learning companion
   * 👻 *Cozy Ghost*
   * 🚀 *Space Bot*
 * **Physics & Window Dragging**: Freely move it anywhere on your desktop, minimize it, or pin it to screen edges.
+* **Multi-Monitor Return & Walk-Home Music 🏠**: Dragging the pet to a secondary monitor makes it gently stroll back to its home screen while playing your custom audio tracks or procedural whistling. Place any `.mp3`, `.wav`, or `.ogg` tracks into `~/.config/deskimoni/sounds/gohome/`!
 
 ### 🧠 Dual AI Brain & Persistent Memory
 * **Local Ollama & Google Gemini Failover**: Chat and ask questions anytime. Uses your local Ollama models (e.g. `llama3`, `gemma3`) and can seamlessly fall back to Google Gemini.

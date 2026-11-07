@@ -31,3 +31,13 @@ Archiv.zip
 # User configuration (saved in ~/.config/deskimoni, but just in case)
 config.json
 memory.json
+
+# User audio / media files
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.m4a
+assets/audio/*
+!assets/audio/README.md
+assets/sounds/

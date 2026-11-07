@@ -110,6 +110,7 @@ class RobotSoundEngine:
         self.voice_enabled = True
         self.chirps_enabled = True
         self.kwai_proc = None
+        self.gohome_proc = None
         self.voice_id = "kawaii_girl"
         self.tts_voice = "de-DE-AmalaNeural"
         self.tts_rate = "+12%"
@@ -190,9 +191,43 @@ class RobotSoundEngine:
                 except Exception:
                     pass
 
-    def stop_kwai_whistle(self):
-        """Stoppt die Wiedergabe des Kwai-Marsches sofort."""
-        proc = getattr(self, "kwai_proc", None)
+    def get_gohome_dir(self) -> str:
+        return os.path.expanduser("~/.config/deskimoni/sounds/gohome")
+
+    def ensure_gohome_dir(self) -> str:
+        path = self.get_gohome_dir()
+        try:
+            os.makedirs(path, exist_ok=True)
+            readme_path = os.path.join(path, "LIESMICH.txt")
+            if not os.path.exists(readme_path):
+                with open(readme_path, "w", encoding="utf-8") as f:
+                    f.write(
+                        "Deskimoni Heimweg-Musik\n"
+                        "=======================\n\n"
+                        "Lege hier beliebige Audio-Dateien (.mp3, .wav, .ogg, .flac, .m4a) ab.\n"
+                        "Wenn Deskimoni nach Hause watschelt, wählt er zufällig ein Lied aus diesem Ordner ab!\n"
+                    )
+        except Exception:
+            pass
+        return path
+
+    def get_gohome_audio_files(self) -> list:
+        folder = self.ensure_gohome_dir()
+        valid_exts = {".mp3", ".wav", ".ogg", ".flac", ".m4a", ".aac", ".opus", ".wma"}
+        found = []
+        if os.path.isdir(folder):
+            try:
+                for fname in os.listdir(folder):
+                    ext = os.path.splitext(fname)[1].lower()
+                    if ext in valid_exts:
+                        found.append(os.path.join(folder, fname))
+            except Exception:
+                pass
+        return sorted(found)
+
+    def stop_gohome_music(self):
+        """Stoppt die Wiedergabe des Heimweg-Liedes sofort."""
+        proc = getattr(self, "gohome_proc", None) or getattr(self, "kwai_proc", None)
         if proc is not None:
             try:
                 proc.terminate()
@@ -202,19 +237,26 @@ class RobotSoundEngine:
                     proc.kill()
                 except Exception:
                     pass
+            self.gohome_proc = None
             self.kwai_proc = None
 
-    def play_kwai_whistle(self):
-        """Spielt die authentische Marsch-Pfeifmelodie aus 'Die Brücke am Kwai' ab (bevorzugt mp3, Fallback Synthesizer)."""
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        mp3_path = os.path.join(base_dir, "assets", "audio", "kwai.mp3")
-        self.stop_kwai_whistle()
-        if os.path.exists(mp3_path):
-            threading.Thread(target=self._play_kwai_file_process, args=(mp3_path,), daemon=True).start()
+    def stop_kwai_whistle(self):
+        self.stop_gohome_music()
+
+    def play_gohome_music(self):
+        """Spielt ein Lied aus dem lokalen Heimweg-Ordner ab oder pfeift synthetisch (Fallback)."""
+        self.stop_gohome_music()
+        songs = self.get_gohome_audio_files()
+        if songs:
+            chosen = random.choice(songs)
+            threading.Thread(target=self._play_gohome_file_process, args=(chosen,), daemon=True).start()
         else:
             threading.Thread(target=self._synth_kwai_whistle_blocking, daemon=True).start()
 
-    def _play_kwai_file_process(self, path: str):
+    def play_kwai_whistle(self):
+        self.play_gohome_music()
+
+    def _play_gohome_file_process(self, path: str):
         try:
             cmd = None
             if shutil.which("ffplay"):
@@ -224,11 +266,17 @@ class RobotSoundEngine:
             elif shutil.which("pw-play"):
                 cmd = ["pw-play", path]
             if cmd:
-                self.kwai_proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                self.kwai_proc.wait()
+                self.gohome_proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                self.kwai_proc = self.gohome_proc
+                self.gohome_proc.wait()
+                self.gohome_proc = None
                 self.kwai_proc = None
         except Exception:
+            self.gohome_proc = None
             self.kwai_proc = None
+
+    def _play_kwai_file_process(self, path: str):
+        self._play_gohome_file_process(path)
 
     def _synth_kwai_whistle_blocking(self):
         """Synthetisiert die Colonel Bogey March Pfeif-Melodie mit weichem Vibrato und Hüllkurve."""
@@ -285,13 +333,16 @@ class RobotSoundEngine:
         except Exception:
             pass
 
-    def speak_and_whistle_kwai(self, text: str, mood: str = "happy"):
-        """Spricht einen Text und spielt direkt im Anschluss die Kwai-Marschmelodie."""
+    def speak_and_play_gohome(self, text: str, mood: str = "happy"):
+        """Spricht einen Text und spielt direkt im Anschluss die Heimweg-Musik."""
         def _worker():
             self._speak_worker(text, mood)
             time.sleep(0.18)
-            self.play_kwai_whistle()
+            self.play_gohome_music()
         threading.Thread(target=_worker, daemon=True).start()
+
+    def speak_and_whistle_kwai(self, text: str, mood: str = "happy"):
+        self.speak_and_play_gohome(text, mood)
 
     def speak(self, text: str, mood: str = "happy"):
         threading.Thread(
@@ -517,7 +568,8 @@ class DeskimonWidget(QWidget):
             "act_relax": "🧘 Entspannungstipp bitte!",
             "act_random_chat": "🎲 Spontan drauflosplaudern",
             "act_movie_quote": "🎬 Lieblingsfilm-Zitat aufsagen!",
-            "act_whistle": "🎵 Marschlied pfeifen (Die Brücke am Kwai)",
+            "act_whistle": "🎵 Heimweg-Lied abspielen / pfeifen",
+            "act_open_gohome": "📁 Heimweg-Musikordner öffnen...",
             "menu_size": "🔍 Größe",
             "size_small": "Klein (80%)",
             "size_normal": "Normal (100%)",
@@ -619,7 +671,8 @@ class DeskimonWidget(QWidget):
             "act_relax": "🧘 Relaxation tip please!",
             "act_random_chat": "🎲 Chat spontaneously",
             "act_movie_quote": "🎬 Recite a favorite movie quote!",
-            "act_whistle": "🎵 Whistle march (Bridge on the River Kwai)",
+            "act_whistle": "🎵 Play walk-home music / whistle",
+            "act_open_gohome": "📁 Open walk-home music folder...",
             "menu_size": "🔍 Size",
             "size_small": "Small (80%)",
             "size_normal": "Normal (100%)",
@@ -721,7 +774,8 @@ class DeskimonWidget(QWidget):
             "act_relax": "🧘 Gi meg et avslappingstips!",
             "act_random_chat": "🎲 Småprat spontant",
             "act_movie_quote": "🎬 Siter en favorittfilm!",
-            "act_whistle": "🎵 Fløyt marsj (Broen over Kwai)",
+            "act_whistle": "🎵 Spill hjemvei-musikk / plystre",
+            "act_open_gohome": "📁 Åpne mappe for hjemvei-musikk...",
             "menu_size": "🔍 Størrelse",
             "size_small": "Liten (80%)",
             "size_normal": "Normal (100%)",
@@ -2354,6 +2408,10 @@ class DeskimonWidget(QWidget):
         act_whistle.triggered.connect(self.trigger_kwai_whistle)
         chatter_menu.addAction(act_whistle)
 
+        act_gohome_folder = QAction(self.t("act_open_gohome"), self)
+        act_gohome_folder.triggered.connect(self.open_gohome_folder)
+        chatter_menu.addAction(act_gohome_folder)
+
         menu.addSeparator()
 
         # Größe anpassen
@@ -3104,7 +3162,12 @@ class DeskimonWidget(QWidget):
             self.trigger_movie_quote()
             return True
 
-        if any(w in low for w in ("pfeifen", "pfeif", "pfeif ein lied", "pfeif mal", "brücke am kwai", "fluss kwai", "kwai")):
+        if any(w in low for w in ("musik ordner", "musikordner", "heimweg ordner", "gohome", "lieder ordner", "heimweg lieder", "musik-ordner")):
+            self.open_gohome_folder()
+            self.on_ai_reply("Ich habe den Ordner für deine Heimweg-Lieder geöffnet! Lege dort einfach deine MP3s hinein.", "happy")
+            return True
+
+        if any(w in low for w in ("pfeifen", "pfeif", "pfeif ein lied", "pfeif mal", "brücke am kwai", "fluss kwai", "kwai", "heimweg lied", "heimweg-lied")):
             self.trigger_kwai_whistle()
             return True
 
@@ -3594,13 +3657,31 @@ class DeskimonWidget(QWidget):
         self.show_bubble(display_text, 9.5)
         self.sound.speak(speak_text, mood)
 
+    def open_gohome_folder(self):
+        """Öffnet den lokalen Ordner für Heimweg-Lieder im Datei-Manager."""
+        folder = self.sound.ensure_gohome_dir()
+        try:
+            if sys.platform == "win32":
+                os.startfile(folder)
+            elif sys.platform == "darwin":
+                subprocess.Popen(["open", folder])
+            else:
+                subprocess.Popen(["xdg-open", folder])
+            self.show_bubble("📁 Heimweg-Musikordner geöffnet!", 3.5)
+        except Exception:
+            self.show_bubble(f"Musikordner:\n{folder}", 5.0)
+
     def trigger_kwai_whistle(self):
-        """Pfeift die Kwai-Marschmelodie (Colonel Bogey March)."""
+        """Spielt ein Heimweg-Lied aus dem lokalen Musik-Ordner oder pfeift synthetisch."""
         self.trigger_bounce(7.0)
         for _ in range(6):
             self.spawn_particle("note")
-        self.show_bubble("🎵 *pfeift die Brücke am Kwai* 🎶", 5.0)
-        self.sound.play_kwai_whistle()
+        songs = self.sound.get_gohome_audio_files()
+        if songs:
+            self.show_bubble("🎵 *spielt Musik für den Heimweg* 🎶", 5.0)
+        else:
+            self.show_bubble("🎵 *pfeift ein Lied* 🎶\n(Tipp: Eigene MP3s in Musikordner ablegen!)", 5.0)
+        self.sound.play_gohome_music()
 
     def trigger_walk_home_reaction(self):
         """Wird ausgelöst, wenn Deskimoni merkt, dass er auf einem fremden Monitor ist und nach Hause marschiert."""
@@ -3612,8 +3693,12 @@ class DeskimonWidget(QWidget):
             "Huch, fremder Monitor! Ab nach Hause... 🏠",
             "Ich mach mich mal auf den Heimweg! 🐾",
         ])
-        self.show_bubble(f"{quote}\n🎵 *pfeift die Brücke am Kwai*", 6.0)
-        self.sound.speak_and_whistle_kwai(quote, mood="happy")
+        songs = self.sound.get_gohome_audio_files()
+        if songs:
+            self.show_bubble(f"{quote}\n🎵 *spielt Musik für den Heimweg* 🎶", 6.0)
+        else:
+            self.show_bubble(f"{quote}\n🎵 *pfeift ein Lied* 🎶", 6.0)
+        self.sound.speak_and_play_gohome(quote, mood="happy")
 
     def trigger_arrived_home_reaction(self):
         """Wird ausgelöst, sobald Deskimoni wieder auf dem Hauptbildschirm angekommen ist."""
