@@ -455,35 +455,41 @@ class EmojiKryptografWidget(QWidget):
             user_prompt = f"Analysiere diese Emoji-Kombination:\n{user_text}"
 
         reply = ""
-        # 1. Google Gemini API
+        # 1. Google Gemini API (Standard: gemini-3.8-flash)
         if self.gemini_api_key:
-            models_to_try = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-3.8-flash"]
+            models_to_try = ["gemini-3.8-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
             session = requests.Session()
             session.trust_env = False
+            try:
+                import certifi
+                session.verify = certifi.where()
+            except Exception:
+                pass
+
             headers = {
                 "x-goog-api-key": self.gemini_api_key,
                 "Content-Type": "application/json"
             }
             payload = {
-                "contents": [{"parts": [{"text": user_prompt}]}],
-                "systemInstruction": {"parts": [{"text": system_prompt}]},
+                "contents": [{"role": "user", "parts": [{"text": user_prompt}]}],
+                "system_instruction": {"parts": [{"text": system_prompt}]},
                 "generationConfig": {"temperature": 0.7, "maxOutputTokens": 200},
             }
             for model_name in models_to_try:
                 try:
                     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
-                    res = session.post(url, json=payload, headers=headers, timeout=9.0)
+                    res = session.post(url, json=payload, headers=headers, timeout=12.0)
                     if res.status_code == 200:
                         data = res.json()
                         candidates = data.get("candidates", [])
                         if candidates:
                             parts = candidates[0].get("content", {}).get("parts", [])
                             if parts:
-                                reply = parts[0].get("text", "").strip()
+                                reply = "".join(p.get("text", "") for p in parts).strip()
                                 if reply:
                                     break
                     else:
-                        print(f"[EmojiKryptograf] Gemini ({model_name}) HTTP {res.status_code}: {res.text[:100]}")
+                        print(f"[EmojiKryptograf] Gemini ({model_name}) HTTP {res.status_code}: {res.text[:120]}")
                 except Exception as e:
                     print(f"[EmojiKryptograf] Gemini ({model_name}) Exception: {e}")
 
