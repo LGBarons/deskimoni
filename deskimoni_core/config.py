@@ -45,6 +45,7 @@ SKIN_NAMES = {
 MODES = [
     ("pet", "🐾 Begleiter (Gesicht)"),
     ("clock", "🕒 Digitaluhr"),
+    ("work", "💼 Arbeitszeit & Feierabend"),
     ("weather", "🌤️ Live-Wetter"),
     ("news", "📰 RSS News"),
     ("radio", "📻 Web-Radio"),
@@ -57,6 +58,7 @@ MODES = [
 MODE_NAMES = {
     "pet": {"de": "🐾 Begleiter (Gesicht)", "en": "🐾 Companion (Face)", "nb": "🐾 Ledsager (Ansikt)"},
     "clock": {"de": "🕒 Digitaluhr", "en": "🕒 Digital Clock", "nb": "🕒 Digital klokke"},
+    "work": {"de": "💼 Arbeitszeit & Feierabend", "en": "💼 Work Time & Quitting Time", "nb": "💼 Arbeidstid & Hjemreise"},
     "weather": {"de": "🌤️ Live-Wetter", "en": "🌤️ Live Weather", "nb": "🌤️ Værmelding (Live)"},
     "news": {"de": "📰 RSS News", "en": "📰 RSS News", "nb": "📰 RSS-nyheter"},
     "radio": {"de": "📻 Web-Radio", "en": "📻 Web Radio", "nb": "📻 Nettradio"},

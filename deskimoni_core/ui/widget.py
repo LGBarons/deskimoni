@@ -37,6 +37,7 @@ from deskimoni_core.platform.cursor import GlobalCursorTracker, CursorShaker
 from deskimoni_core.services.ai import DeskimonAiMixin
 from deskimoni_core.services.content import DeskimonContentMixin
 from deskimoni_core.services.voice import DeskimonVoiceMixin
+from deskimoni_core.services.worktime import DeskimonWorkTimeMixin
 from deskimoni_core.ui.dialogs import DeskimonMemoryMixin
 from deskimoni_core.ui.menus import DeskimonMenuMixin
 from deskimoni_core.ui.renderer import DeskimonPaintMixin
@@ -50,6 +51,7 @@ class DeskimonWidget(
     DeskimonAiMixin,
     DeskimonContentMixin,
     DeskimonVoiceMixin,
+    DeskimonWorkTimeMixin,
 ):
     """Deskimoni Hauptfenster und interaktiver Desktop-Begleiter."""
 
@@ -268,6 +270,9 @@ class DeskimonWidget(
         self.music_service = ""
         self.last_music_check = 0.0
         self.linux_tip_idx = 0
+
+        # Arbeitszeit- & Feierabend-Rechner initialisieren
+        self.init_worktime()
 
         # UI & Tray Initialisierung
         self.setup_window_flags()
@@ -1567,6 +1572,9 @@ class DeskimonWidget(
             jitter = random.uniform(0.75, 1.25)
             self.next_chatter_time = now + (self.chatter_interval_mins * 60 * jitter)
 
+        # Arbeitszeit-Prüfung (§ 4 ArbZG Pausen & Feierabend)
+        self.check_worktime_alerts(now)
+
         if self.alarm_active and self.alarm_time and now >= self.alarm_time:
             self.trigger_alarm_ring()
 
@@ -1647,7 +1655,10 @@ class DeskimonWidget(
             # Display-Klick-Aktionen
             screen_rect = QRectF(52, 72, 136, 122)
             if screen_rect.contains(QPointF(bx, by)):
-                if self.mode == "pomodoro":
+                if self.mode == "work":
+                    self.toggle_work_pause()
+                    return
+                elif self.mode == "pomodoro":
                     self.toggle_pomodoro()
                     return
                 elif self.mode == "music":

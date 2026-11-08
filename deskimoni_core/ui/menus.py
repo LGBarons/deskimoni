@@ -221,7 +221,31 @@ class DeskimonMenuMixin:
             act_m.triggered.connect(lambda checked, m=model_id: self.set_ollama_model(m))
             voice_menu.addAction(act_m)
 
-        # 7. Pomodoro & Wecker
+        # 7. Arbeitszeit- & Feierabend-Planer (§ 4 ArbZG)
+        work_menu = menu.addMenu("💼 Arbeitszeit & Feierabend (Mo-Mi 9h / Do 15h)")
+        act_work_status = QAction("🕒 Feierabend-Status & Restzeit jetzt ansagen", self)
+        act_work_status.triggered.connect(self.speak_feierabend_status)
+        work_menu.addAction(act_work_status)
+
+        act_work_mode = QAction("📟 Display auf Arbeitszeit-Modus schalten", self)
+        act_work_mode.triggered.connect(lambda: self.set_mode("work"))
+        work_menu.addAction(act_work_mode)
+
+        work_menu.addSeparator()
+        pause_txt = "▶ Pause beenden (Weiterarbeiten)" if getattr(self, "work_pause_active", False) else "☕ Pause starten (nach § 4 ArbZG)"
+        act_work_pause = QAction(pause_txt, self)
+        act_work_pause.triggered.connect(self.toggle_work_pause)
+        work_menu.addAction(act_work_pause)
+
+        act_work_start = QAction("⏰ Arbeitsbeginn heute anpassen...", self)
+        act_work_start.triggered.connect(self.prompt_set_work_start_dialog)
+        work_menu.addAction(act_work_start)
+
+        act_thu_leave = QAction("🚀 Donnerstag Feierabend-Gong testen (15:00 Uhr)", self)
+        act_thu_leave.triggered.connect(lambda: (self.trigger_bounce(9.0), self.sound.speak_and_play_gohome("15 Uhr am Donnerstag! Ab geht's nach Hause!", "excited"), self.start_walk_home_to_primary()))
+        work_menu.addAction(act_thu_leave)
+
+        # 8. Pomodoro & Wecker
         pomo_menu = menu.addMenu(self.t("menu_pomo"))
         pomo_lbl = self.t("pomo_pause") if self.pomo_running else self.t("pomo_start", mins=self.pomo_work_mins)
         act_pomo_toggle = QAction(pomo_lbl, self)

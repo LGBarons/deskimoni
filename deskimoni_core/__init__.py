@@ -9,7 +9,7 @@ import sys
 from deskimoni_core.qt import QApplication
 from deskimoni_core.ui.widget import DeskimonWidget
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 
 def main():

@@ -263,7 +263,24 @@ class DeskimonVoiceMixin:
             self.start_forced_dance(style)
             return True
 
-        # 8. Witze & Entspannung & Filmzitate
+        # 8. Arbeitszeit- & Feierabend-Rechner (§ 4 ArbZG)
+        if any(w in low for w in ("wann ist feierabend", "wie lange noch arbeiten", "wie lange noch bis feierabend", "feierabend", "arbeitszeit", "arbeitszeit status", "restzeit")):
+            self.set_mode("work")
+            self.speak_feierabend_status()
+            return True
+
+        if any(w in low for w in ("pause starten", "pause machen", "ich mache pause", "pause beenden", "pause fertig", "weiterarbeiten")):
+            self.set_mode("work")
+            self.toggle_work_pause()
+            return True
+
+        if any(w in low for w in ("ab gehts nach hause", "ab geht's nach hause", "feierabend machen", "schönen feierabend")):
+            self.trigger_bounce(9.0)
+            self.sound.speak_and_play_gohome("Ab geht's nach Hause! Schönen Feierabend!", "excited")
+            self.start_walk_home_to_primary()
+            return True
+
+        # 9. Witze & Entspannung & Filmzitate
         if any(w in low for w in ("erzähl einen witz", "witz", "witze", "was zum lachen")):
             self.trigger_random_chatter(category="joke")
             return True

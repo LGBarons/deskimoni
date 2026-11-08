@@ -482,13 +482,13 @@ class DeskimonPaintMixin:
         for dx_dot in (110, 120, 130):
             painter.drawEllipse(QPointF(dx_dot, 219), 1.8, 1.8)
 
-        # Kleine V2-Versionskennung dezent rechts neben dem Bauch-Button
+        # Kleine V2.1-Versionskennung dezent rechts neben dem Bauch-Button
         painter.save()
         painter.setPen(QColor(255, 255, 255, 175))
         v2_font = QFont("SansSerif", 7, QFont.Weight.Bold)
         v2_font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 0.5)
         painter.setFont(v2_font)
-        painter.drawText(QRectF(150, 210, 26, 18), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft, "v2")
+        painter.drawText(QRectF(150, 210, 32, 18), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft, "v2.1")
         painter.restore()
 
         led_color = QColor("#00e676") if self.cpu_percent < 75 else QColor("#ff1744")
@@ -522,6 +522,8 @@ class DeskimonPaintMixin:
             self.draw_pet_face(painter, pal["eye"])
         elif self.mode == "clock":
             self.draw_clock_mode(painter, pal["eye"])
+        elif self.mode == "work":
+            self.draw_work_mode(painter, pal["eye"])
         elif self.mode == "weather":
             self.draw_weather_mode(painter, pal["eye"])
         elif self.mode == "news":
@@ -729,6 +731,77 @@ class DeskimonPaintMixin:
             painter.setPen(QColor(255, 255, 255, 160))
             painter.setFont(QFont("SansSerif", 9))
             painter.drawText(QRectF(54, 162, 132, 20), Qt.AlignmentFlag.AlignCenter, date_str)
+
+    def draw_work_mode(self, painter: QPainter, accent: QColor):
+        info = self.get_feierabend_info()
+
+        if info["pause_active"]:
+            title = "☕ PAUSE LÄUFT"
+            title_col = QColor("#f9e2af")
+        elif info["is_weekend"]:
+            title = "🏖️ WOCHENENDE!"
+            title_col = QColor("#a6e3a1")
+        elif info["is_feierabend"]:
+            title = "🎉 FEIERABEND!"
+            title_col = QColor("#a6e3a1")
+        elif info["is_thursday"]:
+            title = "🚀 DO: 15:00 HEIM!"
+            title_col = QColor("#89b4fa")
+        else:
+            title = "💼 ARBEITSZEIT"
+            title_col = accent
+
+        painter.setPen(title_col)
+        painter.setFont(QFont("SansSerif", 9, QFont.Weight.Bold))
+        painter.drawText(QRectF(54, 78, 132, 16), Qt.AlignmentFlag.AlignCenter, title)
+
+        if info["is_weekend"]:
+            painter.setPen(QColor("#ffffff"))
+            painter.setFont(QFont("SansSerif", 11, QFont.Weight.Bold))
+            painter.drawText(QRectF(54, 102, 132, 30), Qt.AlignmentFlag.AlignCenter, "Freie Zeit!")
+            painter.setPen(QColor(255, 255, 255, 160))
+            painter.setFont(QFont("SansSerif", 8))
+            painter.drawText(QRectF(54, 138, 132, 36), Qt.AlignmentFlag.AlignCenter, "Erhol dich gut für\ndie neue Woche! ✨")
+            return
+
+        painter.setPen(QColor("#ffffff"))
+        painter.setFont(QFont("Monospace", 14, QFont.Weight.Bold))
+        painter.drawText(QRectF(54, 96, 132, 24), Qt.AlignmentFlag.AlignCenter, f"{info['worked_str']}")
+
+        bar_x, bar_y, bar_w, bar_h = 62, 122, 116, 7
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(255, 255, 255, 30))
+        painter.drawRoundedRect(QRectF(bar_x, bar_y, bar_w, bar_h), 3, 3)
+
+        target_sec = max(1, 9 * 3600 if not info["is_thursday"] else 6 * 3600)
+        progress = min(1.0, info["net_worked_seconds"] / target_sec)
+        fill_col = QColor("#a6e3a1") if info["is_feierabend"] else accent
+        painter.setBrush(fill_col)
+        painter.drawRoundedRect(QRectF(bar_x, bar_y, bar_w * progress, bar_h), 3, 3)
+
+        if info["is_feierabend"]:
+            sub1 = f"🏁 Feierabend ({info['overtime_str']})"
+            sub1_col = QColor("#a6e3a1")
+        elif info["is_thursday"]:
+            sub1 = f"🏁 15:00 (noch {info['remaining_str']})"
+            sub1_col = QColor("#89b4fa")
+        else:
+            sub1 = f"🏁 {info['feierabend_time_str']} (noch {info['remaining_str']})"
+            sub1_col = QColor(255, 255, 255, 220)
+
+        painter.setPen(sub1_col)
+        painter.setFont(QFont("SansSerif", 8, QFont.Weight.Bold))
+        painter.drawText(QRectF(54, 134, 132, 16), Qt.AlignmentFlag.AlignCenter, sub1)
+
+        sub2 = f"☕ Pause: {info['pause_minutes']}m (Pflicht: {info['arbzg_min_pause_minutes']}m)"
+        painter.setPen(QColor(255, 255, 255, 140))
+        painter.setFont(QFont("SansSerif", 7))
+        painter.drawText(QRectF(54, 153, 132, 15), Qt.AlignmentFlag.AlignCenter, sub2)
+
+        hint = "▶ Klick: Pause beenden" if info["pause_active"] else "⏸ Klick: Pause / Ansage"
+        painter.setPen(QColor(255, 255, 255, 90))
+        painter.setFont(QFont("SansSerif", 6))
+        painter.drawText(QRectF(54, 171, 132, 14), Qt.AlignmentFlag.AlignCenter, hint)
 
     def draw_weather_mode(self, painter: QPainter, accent: QColor):
         painter.setPen(accent)
