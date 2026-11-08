@@ -245,6 +245,21 @@ class DeskimonMenuMixin:
         act_thu_leave.triggered.connect(lambda: (self.trigger_bounce(9.0), self.sound.speak_and_play_gohome("15 Uhr am Donnerstag! Ab geht's nach Hause!", "excited"), self.start_walk_home_to_primary()))
         work_menu.addAction(act_thu_leave)
 
+        # 7b. Termine & Büro-Bingo (Bullshit-Bingo)
+        meeting_menu = menu.addMenu("🎯 Büro-Bingo & 📅 Termine")
+        act_bingo = QAction("🎯 Büro-Bingo (Bullshit-Bingo für Telcos) öffnen", self)
+        act_bingo.triggered.connect(self.open_office_bingo)
+        meeting_menu.addAction(act_bingo)
+
+        act_next_meet = QAction("🕒 Nächsten Termin ansagen", self)
+        act_next_meet.triggered.connect(self.speak_next_meeting)
+        meeting_menu.addAction(act_next_meet)
+
+        meeting_menu.addSeparator()
+        act_manage_meet = QAction("📅 Meine Besprechungen verwalten (Fakultät, X3-Runde...)", self)
+        act_manage_meet.triggered.connect(self.open_manage_meetings)
+        meeting_menu.addAction(act_manage_meet)
+
         # 8. Pomodoro & Wecker
         pomo_menu = menu.addMenu(self.t("menu_pomo"))
         pomo_lbl = self.t("pomo_pause") if self.pomo_running else self.t("pomo_start", mins=self.pomo_work_mins)

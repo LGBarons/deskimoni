@@ -31,6 +31,9 @@ Archiv.zip
 # User configuration (saved in ~/.config/deskimoni, but just in case)
 config.json
 memory.json
+meetings.json
+worktime.json
+settings.json
 
 # User audio / media files
 *.mp3

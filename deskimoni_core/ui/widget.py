@@ -38,6 +38,7 @@ from deskimoni_core.services.ai import DeskimonAiMixin
 from deskimoni_core.services.content import DeskimonContentMixin
 from deskimoni_core.services.voice import DeskimonVoiceMixin
 from deskimoni_core.services.worktime import DeskimonWorkTimeMixin
+from deskimoni_core.services.meetings import DeskimonMeetingBingoMixin
 from deskimoni_core.ui.dialogs import DeskimonMemoryMixin
 from deskimoni_core.ui.menus import DeskimonMenuMixin
 from deskimoni_core.ui.renderer import DeskimonPaintMixin
@@ -52,6 +53,7 @@ class DeskimonWidget(
     DeskimonContentMixin,
     DeskimonVoiceMixin,
     DeskimonWorkTimeMixin,
+    DeskimonMeetingBingoMixin,
 ):
     """Deskimoni Hauptfenster und interaktiver Desktop-Begleiter."""
 
@@ -275,6 +277,9 @@ class DeskimonWidget(
 
         # Arbeitszeit- & Feierabend-Rechner initialisieren
         self.init_worktime()
+
+        # Termine, Telcos & Büro-Bingo initialisieren
+        self.init_meeting_bingo()
 
         # UI & Tray Initialisierung
         self.setup_window_flags()
@@ -1638,6 +1643,9 @@ class DeskimonWidget(
 
         # Arbeitszeit-Prüfung (§ 4 ArbZG Pausen & Feierabend)
         self.check_worktime_alerts(now)
+
+        # Besprechungen & Telco-Erinnerungen prüfen
+        self.check_meeting_alerts(now)
 
         if self.alarm_active and self.alarm_time and now >= self.alarm_time:
             self.trigger_alarm_ring()

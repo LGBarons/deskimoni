@@ -2,5 +2,10 @@
 from .ai import DeskimonAiMixin
 from .content import DeskimonContentMixin
 from .voice import DeskimonVoiceMixin
+from .worktime import DeskimonWorkTimeMixin
+from .meetings import DeskimonMeetingBingoMixin
 
-__all__ = ["DeskimonAiMixin", "DeskimonContentMixin", "DeskimonVoiceMixin"]
+__all__ = [
+    "DeskimonAiMixin", "DeskimonContentMixin", "DeskimonVoiceMixin",
+    "DeskimonWorkTimeMixin", "DeskimonMeetingBingoMixin"
+]

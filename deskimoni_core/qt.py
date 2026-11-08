@@ -65,6 +65,14 @@ QInputDialog = QtWidgets.QInputDialog
 QMessageBox = QtWidgets.QMessageBox
 QSystemTrayIcon = QtWidgets.QSystemTrayIcon
 QStyle = QtWidgets.QStyle
+QDialog = QtWidgets.QDialog
+QVBoxLayout = QtWidgets.QVBoxLayout
+QHBoxLayout = QtWidgets.QHBoxLayout
+QGridLayout = QtWidgets.QGridLayout
+QLabel = QtWidgets.QLabel
+QCheckBox = QtWidgets.QCheckBox
+QScrollArea = QtWidgets.QScrollArea
+QFrame = QtWidgets.QFrame
 
 __all__ = [
     "QT_BINDING", "Signal", "Slot", "QtCore", "QtGui", "QtWidgets",
@@ -72,5 +80,7 @@ __all__ = [
     "QColor", "QFont", "QPainter", "QPainterPath", "QCursor", "QIcon", "QBrush", "QPen",
     "QLinearGradient", "QRadialGradient", "QAction", "QActionGroup", "QSvgRenderer",
     "QWidget", "QApplication", "QLineEdit", "QPushButton", "QMenu",
-    "QInputDialog", "QMessageBox", "QSystemTrayIcon", "QStyle"
+    "QInputDialog", "QMessageBox", "QSystemTrayIcon", "QStyle",
+    "QDialog", "QVBoxLayout", "QHBoxLayout", "QGridLayout", "QLabel", "QCheckBox",
+    "QScrollArea", "QFrame"
 ]

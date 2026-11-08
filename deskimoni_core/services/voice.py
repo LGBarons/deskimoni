@@ -341,6 +341,27 @@ class DeskimonVoiceMixin:
             self.toggle_norskmus()
             return True
 
+        # Termine & Büro-Bingo
+        if any(w in low for w in ("büro bingo", "meeting bingo", "bullshit bingo", "telco bingo")):
+            self.open_office_bingo()
+            return True
+
+        if any(w in low for w in ("nächster termin", "nächstes meeting", "nächste besprechung", "wann ist der nächste termin", "was steht an")):
+            self.speak_next_meeting()
+            return True
+
+        if low.startswith("bingo ") or low.startswith("treffer "):
+            keyword = low.replace("bingo ", "").replace("treffer ", "").strip()
+            if getattr(self, "bingo_dialog", None) and self.bingo_dialog.isVisible():
+                if self.bingo_dialog.mark_floskel_by_keyword(keyword):
+                    self.sound.play_chirp("happy")
+                    return True
+            else:
+                self.open_office_bingo()
+                if getattr(self, "bingo_dialog", None):
+                    self.bingo_dialog.mark_floskel_by_keyword(keyword)
+                return True
+
         # 10. Sprache wechseln
         if any(w in low for w in ("language english", "english menu", "sprache englisch")):
             self.set_app_language("en")
