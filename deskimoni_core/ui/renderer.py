@@ -482,6 +482,15 @@ class DeskimonPaintMixin:
         for dx_dot in (110, 120, 130):
             painter.drawEllipse(QPointF(dx_dot, 219), 1.8, 1.8)
 
+        # Kleine V2-Versionskennung dezent rechts neben dem Bauch-Button
+        painter.save()
+        painter.setPen(QColor(255, 255, 255, 175))
+        v2_font = QFont("SansSerif", 7, QFont.Weight.Bold)
+        v2_font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 0.5)
+        painter.setFont(v2_font)
+        painter.drawText(QRectF(150, 210, 26, 18), Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft, "v2")
+        painter.restore()
+
         led_color = QColor("#00e676") if self.cpu_percent < 75 else QColor("#ff1744")
         if self.mic_status == "recording":
             led_color = QColor("#ff1744")

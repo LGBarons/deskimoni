@@ -393,6 +393,16 @@ class DeskimonMenuMixin:
         act_podcast_100.triggered.connect(self.play_podcast_tagesschau_100s)
         radio_menu.addAction(act_podcast_100)
 
+        radio_menu.addSeparator()
+        act_dance_auto = QAction("🕺 Automatisch tanzen bei Musik", self, checkable=True)
+        act_dance_auto.setChecked(getattr(self, "dance_enabled", True))
+        act_dance_auto.triggered.connect(lambda checked: setattr(self, "dance_enabled", checked) or self.save_user_settings())
+        radio_menu.addAction(act_dance_auto)
+
+        act_not_music = QAction("🤫 „Das ist keine Musik!“ (Tanz sofort stoppen)", self)
+        act_not_music.triggered.connect(self.mark_current_not_music)
+        radio_menu.addAction(act_not_music)
+
         # 12. Plaudern, Witze & Filmzitate
         chatter_menu = menu.addMenu(self.t("menu_chatter"))
         act_chat_toggle = QAction(self.t("act_chatter_toggle", mins=self.chatter_interval_mins), self, checkable=True)

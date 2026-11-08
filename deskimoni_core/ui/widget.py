@@ -179,6 +179,7 @@ class DeskimonWidget(
         self.dance_phase = 0.0
         self.forced_dance_until = 0.0
         self.forced_dance_style = "groove"
+        self.ignored_dance_titles = set()
 
         # Spazier-Modus
         self.roaming_enabled = True
@@ -1132,6 +1133,74 @@ class DeskimonWidget(
         self.show_bubble("🛑 Tanzpause eingelegt!", 3.0)
         self.update()
 
+    def mark_current_not_music(self):
+        """Merkt sich den aktuellen Titel als 'Keine Musik' und stoppt sofort das Tanzen."""
+        cur_title = getattr(self, "music_title", "").strip().lower()
+        if cur_title:
+            self.ignored_dance_titles.add(cur_title)
+        self.stop_forced_dance()
+        self.is_dancing = False
+        self.dance_style = "none"
+        self.trigger_bounce(5.0)
+        self.sound.play_chirp("curious")
+        self.show_bubble("🤫 Ups, verstanden! Das ist keine Musik – ich sitze brav still!", 4.5)
+        self.sound.speak("Verstanden! Bei diesem Video sitze ich still.", "neutral")
+        self.update()
+
+    def is_playback_real_music(self) -> bool:
+        """Prüft, ob die aktuelle Medienwiedergabe echte Musik ist und keine normalen Sprachvideos/Podcasts."""
+        if getattr(self, "radio_playing", False):
+            return True
+
+        if not getattr(self, "music_playing", False):
+            return False
+
+        track_title = str(getattr(self, "music_title", "")).lower().strip()
+        track_artist = str(getattr(self, "music_artist", "")).lower().strip()
+        service = str(getattr(self, "music_service", "")).lower().strip()
+        combined = f"{track_title} {track_artist}".strip()
+
+        # 1. Wurde dieser Titel vom Nutzer explizit als 'Keine Musik' markiert?
+        if track_title in self.ignored_dance_titles or combined in self.ignored_dance_titles:
+            return False
+
+        # 2. Reine Sprach- & Video-Schlüsselwörter ausschließen
+        speech_keywords = (
+            "podcast", "talk", "nachrichten", "news", "review", "tutorial",
+            "let's play", "lets play", "gameplay", "doku", "dokumentation",
+            "interview", "vlog", "guide", "erklärung", "stream", "reaction",
+            "reaktion", "hörbuch", "audiobook", "lecture", "vortrag", "debatt",
+            "comedy", "stand-up", "unboxing", "tagesschau", "folge", "episode",
+            "video essay", "analyse", "kommentar", "erklärt", "vorstellung",
+            "testbericht", "wissen", "reportage", "wetter"
+        )
+        if any(sk in combined for sk in speech_keywords):
+            return False
+
+        # 3. Dedizierte Musik-Player (Spotify, VLC, Clementine, Rhythmbox, Deezer, Tidal, Apple Music etc.)
+        music_services = ("spotify", "clementine", "rhythmbox", "audacious", "vlc", "deezer", "tidal", "apple")
+        if any(ms in service for ms in music_services):
+            return True
+
+        # 4. Wenn es aus dem Browser kommt (z.B. YouTube):
+        # Nur tanzen, wenn es typische Musik-Merkmale hat oder Rock/Metal ist
+        music_indicators = (
+            "music", "musik", "song", "feat.", "ft.", "remix", "official video",
+            "official audio", "lyric", "lyrics", "soundtrack", "ost", "theme",
+            "beat", "cover", "album", "live in concert", "orchestra", "instrumental",
+            "dj", "bass", "synth", "lofi", "chillhop", "rap", "hip hop", "pop"
+        )
+        rock_words = (
+            "rock", "metal", "punk", "ac/dc", "acdc", "metallica", "rammstein",
+            "maiden", "slipknot", "linkin", "nirvana", "foo fighters", "guitar",
+            "heavy", "disturbed", "sabaton", "korn", "motörhead", "motorhead",
+            "judas", "greenday", "green day", "sum 41", "system of a down", "soad"
+        )
+        if any(mi in combined for mi in music_indicators) or any(rw in combined for rw in rock_words):
+            return True
+
+        return False
+
     def set_scale(self, scale):
         self.scale_factor = scale
         self.resize(
@@ -1232,8 +1301,8 @@ class DeskimonWidget(
         self.tick_count += 1
         self.breath_phase += 0.05
 
-        # Tanz- & Headbang-Erkennung
-        music_active = self.radio_playing or getattr(self, "music_playing", False)
+        # Tanz- & Headbang-Erkennung (nur bei echter Musik oder Web-Radio, nicht bei normalen Sprachvideos!)
+        real_music_active = self.is_playback_real_music()
         forced_active = now < self.forced_dance_until
 
         is_dancing = False
@@ -1242,7 +1311,7 @@ class DeskimonWidget(
         if forced_active:
             is_dancing = True
             current_style = self.forced_dance_style
-        elif getattr(self, "dance_enabled", True) and music_active:
+        elif getattr(self, "dance_enabled", True) and real_music_active:
             is_dancing = True
             is_rock = False
             if self.radio_playing and self.radio_stations:

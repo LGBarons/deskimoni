@@ -249,6 +249,16 @@ class DeskimonVoiceMixin:
             self.on_ai_reply("Ich habe das Radio pausiert!", "happy")
             return True
 
+        # Tanz- & Musik-Filter-Befehle („Das ist keine Musik!“)
+        if any(w in low for w in ("das ist keine musik", "keine musik", "nicht tanzen", "hör auf zu tanzen", "stopp tanzen", "stop dancing", "ikke dans", "tanz nicht")):
+            self.mark_current_not_music()
+            return True
+
+        if any(w in low for w in ("tanz mal", "tanz für mich", "tanzen", "dance", "rock ab", "headbang", "headbangen")):
+            style = "headbang" if any(w in low for w in ("headbang", "rock")) else "groove"
+            self.start_forced_dance(style)
+            return True
+
         # 8. Witze & Entspannung & Filmzitate
         if any(w in low for w in ("erzähl einen witz", "witz", "witze", "was zum lachen")):
             self.trigger_random_chatter(category="joke")
