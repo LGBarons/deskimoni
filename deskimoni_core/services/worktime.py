@@ -278,8 +278,42 @@ class DeskimonWorkTimeMixin:
         self.show_bubble(msg, 7.5)
         self.sound.speak(voice_msg, "happy")
 
+    def set_work_start_time(self, hour: int, minute: int):
+        """Setzt den Arbeitsbeginn heute auf eine feste Uhrzeit (z. B. per Sprache oder Dialog) und verkündet den exakten Feierabend."""
+        dt_now = datetime.now()
+        new_start_dt = dt_now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        self.work_start_time = new_start_dt.timestamp()
+        self.save_worktime_data()
+        self.trigger_bounce(7.0)
+        self.sound.play_chirp("happy")
+
+        info = self.get_feierabend_info()
+        start_str = f"{hour:02d}:{minute:02d}"
+
+        if info["is_thursday"]:
+            msg = (
+                f"⏰ Arbeitsbeginn auf {start_str} Uhr gesetzt!\n"
+                f"🚀 Donnerstag: Feierabend pünktlich um 15:00 Uhr (noch {info['remaining_str']})!"
+            )
+            voice_msg = f"Arbeitsbeginn auf {start_str} Uhr gesetzt. Donnerstag ist um 15:00 Uhr Feierabend! Noch {info['remaining_str']}."
+        elif info["is_weekend"]:
+            msg = f"⏰ Startzeit auf {start_str} Uhr gesetzt (Heute ist Wochenende!)."
+            voice_msg = f"Startzeit auf {start_str} Uhr gesetzt. Heute ist Wochenende!"
+        else:
+            msg = (
+                f"⏰ Arbeitsbeginn: {start_str} Uhr gesetzt!\n"
+                f"🏁 Feierabend (9h + 30m Pause nach § 4 ArbZG): exakt {info['feierabend_time_str']} Uhr!\n"
+                f"⏳ Verbleibend: Noch {info['remaining_str']} bis Feierabend!"
+            )
+            voice_msg = f"Alles klar! Arbeitsbeginn auf {start_str} Uhr gesetzt. Mit 9 Stunden Arbeit und 30 Minuten Pause nach Arbeitszeitgesetz ist dein Feierabend um exakt {info['feierabend_time_str']} Uhr! Noch {info['remaining_str']}."
+
+        self.set_mode("work")
+        self.show_bubble(msg, 8.5)
+        self.sound.speak(voice_msg, "happy")
+        self.update()
+
     def prompt_set_work_start_dialog(self):
-        """Erlaubt das nachträgliche Anpassen des Arbeitsbeginns."""
+        """Erlaubt das nachträgliche Anpassen des Arbeitsbeginns per Dialog."""
         info = self.get_feierabend_info()
         txt, ok = QInputDialog.getText(
             self,
@@ -293,13 +327,7 @@ class DeskimonWorkTimeMixin:
             if m:
                 h, mi = int(m.group(1)), int(m.group(2))
                 if 0 <= h <= 23 and 0 <= mi <= 59:
-                    dt_now = datetime.now()
-                    new_start_dt = dt_now.replace(hour=h, minute=mi, second=0, microsecond=0)
-                    self.work_start_time = new_start_dt.timestamp()
-                    self.save_worktime_data()
-                    self.trigger_bounce(6.0)
-                    self.show_bubble(f"⏰ Arbeitsbeginn heute auf {h:02d}:{mi:02d} Uhr gesetzt!", 4.0)
-                    self.update()
+                    self.set_work_start_time(h, mi)
                     return
             QMessageBox.warning(self, "Ungültige Uhrzeit", "Bitte das Format HH:MM verwenden (z. B. 08:30).")
 

@@ -264,6 +264,24 @@ class DeskimonVoiceMixin:
             return True
 
         # 8. Arbeitszeit- & Feierabend-Rechner (§ 4 ArbZG)
+        # Erkennung von Arbeitsbeginn (z. B. „Ich habe um 07:30 angefangen“, „Arbeitsbeginn 08:00“)
+        patterns_work_start = [
+            r"(?:habe\s+um|arbeite\s+seit|arbeitsbeginn|arbeitsstart|startzeit|beginn)\s*(?:um\s*)?(\d{1,2})[:\.](\d{2})",
+            r"(\d{1,2})[:\.](\d{2})\s*(?:uhr\s*)?(?:angefangen|begonnen|gestartet)"
+        ]
+        for pat in patterns_work_start:
+            m = re.search(pat, low)
+            if m:
+                h, mi = int(m.group(1)), int(m.group(2))
+                if 0 <= h <= 23 and 0 <= mi <= 59:
+                    self.set_work_start_time(h, mi)
+                    return True
+
+        if any(w in low for w in ("ich fange jetzt an", "fange jetzt an", "arbeitsbeginn jetzt", "arbeitsstart jetzt")):
+            now_dt = datetime.now()
+            self.set_work_start_time(now_dt.hour, now_dt.minute)
+            return True
+
         if any(w in low for w in ("wann ist feierabend", "wie lange noch arbeiten", "wie lange noch bis feierabend", "feierabend", "arbeitszeit", "arbeitszeit status", "restzeit")):
             self.set_mode("work")
             self.speak_feierabend_status()
