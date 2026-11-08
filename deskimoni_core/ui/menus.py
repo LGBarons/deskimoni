@@ -256,9 +256,37 @@ class DeskimonMenuMixin:
         meeting_menu.addAction(act_next_meet)
 
         meeting_menu.addSeparator()
+        cur_pre = getattr(self, "meeting_pre_alert_mins", 10)
+        pre_sub = meeting_menu.addMenu(f"⏰ Vorwarnzeit ({cur_pre} Min. vor Start)")
+        pre_grp = QActionGroup(self)
+        for mins in (5, 10, 15, 20, 30):
+            act_p = QAction(f"{mins} Minuten vorher warnen", self, checkable=True)
+            act_p.setChecked(cur_pre == mins)
+            act_p.triggered.connect(lambda checked, m=mins: self.set_meeting_pre_alert_mins(m))
+            pre_grp.addAction(act_p)
+            pre_sub.addAction(act_p)
+
+        meeting_menu.addSeparator()
         act_manage_meet = QAction("📅 Meine Besprechungen verwalten (Fakultät, X3-Runde...)", self)
         act_manage_meet.triggered.connect(self.open_manage_meetings)
         meeting_menu.addAction(act_manage_meet)
+
+        # 7c. Eigene Apps & Webseiten (Quick-Launcher)
+        quick_menu = menu.addMenu("🚀 Eigene Apps & Webseiten")
+        for q_item in getattr(self, "quicklaunch_items", []):
+            label = f"{q_item.get('icon', '🚀')} {q_item['name']}"
+            act_qi = QAction(label, self)
+            act_qi.triggered.connect(lambda checked, it=q_item: self.launch_quick_item(it))
+            quick_menu.addAction(act_qi)
+
+        quick_menu.addSeparator()
+        act_add_q = QAction("➕ Neue App / Webseite hinzufügen...", self)
+        act_add_q.triggered.connect(self.prompt_add_quicklaunch)
+        quick_menu.addAction(act_add_q)
+
+        act_manage_q = QAction("⚙️ Apps & Webseiten verwalten...", self)
+        act_manage_q.triggered.connect(self.open_quicklaunch_dialog)
+        quick_menu.addAction(act_manage_q)
 
         # 8. Pomodoro & Wecker
         pomo_menu = menu.addMenu(self.t("menu_pomo"))

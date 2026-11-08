@@ -39,6 +39,7 @@ from deskimoni_core.services.content import DeskimonContentMixin
 from deskimoni_core.services.voice import DeskimonVoiceMixin
 from deskimoni_core.services.worktime import DeskimonWorkTimeMixin
 from deskimoni_core.services.meetings import DeskimonMeetingBingoMixin
+from deskimoni_core.services.quicklaunch import DeskimonQuickLaunchMixin
 from deskimoni_core.ui.dialogs import DeskimonMemoryMixin
 from deskimoni_core.ui.menus import DeskimonMenuMixin
 from deskimoni_core.ui.renderer import DeskimonPaintMixin
@@ -54,6 +55,7 @@ class DeskimonWidget(
     DeskimonVoiceMixin,
     DeskimonWorkTimeMixin,
     DeskimonMeetingBingoMixin,
+    DeskimonQuickLaunchMixin,
 ):
     """Deskimoni Hauptfenster und interaktiver Desktop-Begleiter."""
 
@@ -280,6 +282,9 @@ class DeskimonWidget(
 
         # Termine, Telcos & Büro-Bingo initialisieren
         self.init_meeting_bingo()
+
+        # Eigene Apps, AppImages & Webseiten initialisieren
+        self.init_quicklaunch()
 
         # UI & Tray Initialisierung
         self.setup_window_flags()

@@ -362,6 +362,10 @@ class DeskimonVoiceMixin:
                     self.bingo_dialog.mark_floskel_by_keyword(keyword)
                 return True
 
+        # Eigene Schnellstarter (Programme, AppImages wie Proggibe & Webseiten)
+        if hasattr(self, "handle_voice_quicklaunch") and self.handle_voice_quicklaunch(low):
+            return True
+
         # 10. Sprache wechseln
         if any(w in low for w in ("language english", "english menu", "sprache englisch")):
             self.set_app_language("en")

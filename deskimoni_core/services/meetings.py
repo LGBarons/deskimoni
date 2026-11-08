@@ -438,6 +438,42 @@ class ManageMeetingsDialog(QDialog):
         layout.addWidget(title)
         layout.addWidget(sub)
 
+        # Vorwarnzeit Selector
+        pre_box = QHBoxLayout()
+        pre_lbl = QLabel("⏰ Standard-Vorwarnzeit:")
+        pre_lbl.setStyleSheet("font-size: 12px; font-weight: bold; color: #38bdf8;")
+        pre_box.addWidget(pre_lbl)
+
+        self.pre_btns = []
+        for mins in (5, 10, 15, 20, 30):
+            btn_m = QPushButton(f"{mins} Min.")
+            btn_m.setCheckable(True)
+            cur_m = getattr(self.mixin, "meeting_pre_alert_mins", 10)
+            btn_m.setChecked(cur_m == mins)
+            btn_m.setStyleSheet(
+                """
+                QPushButton {
+                    background-color: #1e293b;
+                    color: #cbd5e1;
+                    border: 1px solid #334155;
+                    border-radius: 6px;
+                    padding: 4px 8px;
+                    font-size: 11px;
+                }
+                QPushButton:checked {
+                    background-color: #0284c7;
+                    color: #ffffff;
+                    border-color: #38bdf8;
+                    font-weight: bold;
+                }
+                """
+            )
+            btn_m.clicked.connect(lambda _, m_val=mins: self.on_pre_alert_changed(m_val))
+            pre_box.addWidget(btn_m)
+            self.pre_btns.append(btn_m)
+        pre_box.addStretch()
+        layout.addLayout(pre_box)
+
         # Liste der Meetings
         self.items_layout = QVBoxLayout()
         self.items_layout.setSpacing(8)
@@ -564,6 +600,11 @@ class ManageMeetingsDialog(QDialog):
 
         self.items_layout.addStretch()
 
+    def on_pre_alert_changed(self, mins: int):
+        self.mixin.set_meeting_pre_alert_mins(mins)
+        for b in getattr(self, "pre_btns", []):
+            b.setChecked(b.text().startswith(f"{mins} "))
+
     def on_toggle_enabled(self, mid: str, checked: bool):
         for m in self.mixin.meetings:
             if m["id"] == mid:
@@ -620,8 +661,17 @@ class DeskimonMeetingBingoMixin:
         self.bingo_dialog = None
         self.meetings_last_check = 0.0
         self.meetings_fired_alerts = set()  # (date_str, meeting_id, 'pre'/'start')
+        self.meeting_pre_alert_mins = int(getattr(self, "user_settings", {}).get("meeting_pre_alert_mins", 10))
 
         self.load_meetings_data()
+
+    def set_meeting_pre_alert_mins(self, mins: int):
+        self.meeting_pre_alert_mins = mins
+        if hasattr(self, "user_settings"):
+            self.user_settings["meeting_pre_alert_mins"] = mins
+            self.save_user_settings()
+        self.show_bubble(f"⏰ Besprechungs-Vorwarnung: {mins} Minuten vorher!", 3.5)
+        self.sound.play_chirp("happy")
 
     def load_meetings_data(self):
         """Lädt Meetings aus ~/.config/deskimoni/meetings.json oder legt Standard an."""
@@ -711,11 +761,13 @@ class DeskimonMeetingBingoMixin:
             meet_dt = now_dt.replace(hour=m_hour, minute=m_minute, second=0, microsecond=0)
             diff_secs = (meet_dt - now_dt).total_seconds()
 
-            # 1. Vorwarnung: 5 Minuten vorher (zwischen 4 und 6 Minuten)
+            # 1. Vorwarnung: Dynamisch (Standard 10 Min., oder individuell konfiguriert)
+            pre_mins = m.get("pre_alert_mins", getattr(self, "meeting_pre_alert_mins", 10))
+            pre_secs = pre_mins * 60
             pre_key = (today_str, m["id"], "pre")
-            if 0 < diff_secs <= 330 and pre_key not in self.meetings_fired_alerts:
+            if (pre_secs - 60) <= diff_secs <= (pre_secs + 30) and pre_key not in self.meetings_fired_alerts:
                 self.meetings_fired_alerts.add(pre_key)
-                self._trigger_meeting_alert(m, is_start=False)
+                self._trigger_meeting_alert(m, is_start=False, pre_mins=pre_mins)
 
             # 2. Start-Gong: Pünktlich zur Startzeit (zwischen -60s und +60s)
             start_key = (today_str, m["id"], "start")
@@ -723,7 +775,7 @@ class DeskimonMeetingBingoMixin:
                 self.meetings_fired_alerts.add(start_key)
                 self._trigger_meeting_alert(m, is_start=True)
 
-    def _trigger_meeting_alert(self, m: dict, is_start: bool):
+    def _trigger_meeting_alert(self, m: dict, is_start: bool, pre_mins: int = 10):
         self.trigger_bounce(9.0)
         self.sound.play_chirp("curious")
 
@@ -733,10 +785,12 @@ class DeskimonMeetingBingoMixin:
             self.show_bubble(f"🚨 {m.get('title')} beginnt JETZT!\n{msg}", 9.0)
             self.sound.speak(msg, "excited")
         else:
-            pool = m.get("sarcasm_pre", [f"In 5 Minuten startet {m.get('title')}!"])
-            msg = random.choice(pool)
-            self.show_bubble(f"⏰ In 5 Minuten: {m.get('title')}\n{msg}", 8.0)
-            self.sound.speak(msg, "happy")
+            pool = m.get("sarcasm_pre", [f"In {pre_mins} Minuten startet {m.get('title')}!"])
+            raw_msg = random.choice(pool)
+            # "5 Minuten" im vordefinierten Text dynamisch anpassen
+            dyn_msg = raw_msg.replace("5 Minuten", f"{pre_mins} Minuten").replace("5 Min.", f"{pre_mins} Min.")
+            self.show_bubble(f"⏰ In {pre_mins} Minuten: {m.get('title')}\n{dyn_msg}", 8.0)
+            self.sound.speak(dyn_msg, "happy")
 
     # ==========================================
     # --- Nächsten Termin ansagen ---

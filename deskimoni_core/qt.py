@@ -73,6 +73,7 @@ QLabel = QtWidgets.QLabel
 QCheckBox = QtWidgets.QCheckBox
 QScrollArea = QtWidgets.QScrollArea
 QFrame = QtWidgets.QFrame
+QFileDialog = QtWidgets.QFileDialog
 
 __all__ = [
     "QT_BINDING", "Signal", "Slot", "QtCore", "QtGui", "QtWidgets",
@@ -82,5 +83,5 @@ __all__ = [
     "QWidget", "QApplication", "QLineEdit", "QPushButton", "QMenu",
     "QInputDialog", "QMessageBox", "QSystemTrayIcon", "QStyle",
     "QDialog", "QVBoxLayout", "QHBoxLayout", "QGridLayout", "QLabel", "QCheckBox",
-    "QScrollArea", "QFrame"
+    "QScrollArea", "QFrame", "QFileDialog"
 ]

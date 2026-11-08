@@ -34,6 +34,7 @@ memory.json
 meetings.json
 worktime.json
 settings.json
+quicklaunch.json
 
 # User audio / media files
 *.mp3
