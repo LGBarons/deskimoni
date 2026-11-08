@@ -328,6 +328,15 @@ class DeskimonVoiceMixin:
             self.start_cursor_search_now()
             return True
 
+        # Begleiter / Sidekicks (Jo the Crow & NorskMus)
+        if any(w in low for w in ("jo the crow", "jothecrow", "ruf jo", "hol die krähe", "slang übersetzer", "slang übersetzerin", "krähe rufen", "krähe holen")):
+            self.toggle_jothecrow()
+            return True
+
+        if any(w in low for w in ("norskmus", "norsk mus", "norwegische maus", "hol die maus", "ruf die maus")):
+            self.toggle_norskmus()
+            return True
+
         # 10. Sprache wechseln
         if any(w in low for w in ("language english", "english menu", "sprache englisch")):
             self.set_app_language("en")

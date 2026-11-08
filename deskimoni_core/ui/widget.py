@@ -210,6 +210,7 @@ class DeskimonWidget(
         self.is_dragging_pet = False
         self.drag_offset = QPointF(0, 0)
         self.norskmus_proc = None
+        self.jothecrow_proc = None
 
         # Bauch-Button Timer (Einzelklick vs Doppelklick)
         self.belly_click_timer = QTimer(self)
@@ -827,16 +828,49 @@ class DeskimonWidget(
             self.show_bubble("🐭 NorskMus macht ein Nickerchen! Ha det bra!", 3.0)
             self.sound.play_chirp("happy")
         else:
-            script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "run_mouse.sh")
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            script_sh = os.path.join(base_dir, "run_mouse.sh")
+            script_py = os.path.join(base_dir, "norskmus.py")
             try:
-                if os.path.exists(script_path):
-                    self.norskmus_proc = subprocess.Popen([script_path])
+                if sys.platform.startswith("win"):
+                    self.norskmus_proc = subprocess.Popen([sys.executable, script_py])
+                elif os.path.exists(script_sh) and os.access(script_sh, os.X_OK):
+                    self.norskmus_proc = subprocess.Popen([script_sh])
                 else:
-                    self.norskmus_proc = subprocess.Popen([sys.executable, "mousie.py"])
+                    self.norskmus_proc = subprocess.Popen([sys.executable, script_py])
                 self.show_bubble("🐭 NorskMus ist da! Vær så god! 🇳🇴", 3.5)
                 self.sound.play_chirp("love")
             except Exception as e:
                 self.show_bubble(f"⚠️ Konnte NorskMus nicht starten: {e}", 4.0)
+
+    def is_jothecrow_running(self) -> bool:
+        return self.jothecrow_proc is not None and self.jothecrow_proc.poll() is None
+
+    def toggle_jothecrow(self):
+        if self.is_jothecrow_running():
+            try:
+                self.jothecrow_proc.terminate()
+                self.jothecrow_proc = None
+            except Exception:
+                pass
+            self.show_bubble("🐦‍⬛ Jo the Crow macht Pause! Ciao Digga!", 3.0)
+            self.sound.play_chirp("happy")
+        else:
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            script_sh = os.path.join(base_dir, "run_crow.sh")
+            script_bat = os.path.join(base_dir, "start_crow_windows.bat")
+            script_py = os.path.join(base_dir, "jothecrow.py")
+            try:
+                if sys.platform.startswith("win") and os.path.exists(script_bat):
+                    self.jothecrow_proc = subprocess.Popen([script_bat], shell=True)
+                elif os.path.exists(script_sh) and os.access(script_sh, os.X_OK):
+                    self.jothecrow_proc = subprocess.Popen([script_sh])
+                else:
+                    self.jothecrow_proc = subprocess.Popen([sys.executable, script_py])
+                self.show_bubble("🐦‍⬛ Jo the Crow ist gelandet! Sheesh! ✨", 3.5)
+                self.sound.play_chirp("love")
+            except Exception as e:
+                self.show_bubble(f"⚠️ Konnte Jo the Crow nicht starten: {e}", 4.0)
 
     def toggle_cursor_finder(self):
         self.cursor_finder_enabled = not self.cursor_finder_enabled

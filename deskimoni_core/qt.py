@@ -47,6 +47,14 @@ QRadialGradient = QtGui.QRadialGradient
 QAction = QtGui.QAction
 QActionGroup = QtGui.QActionGroup
 
+try:
+    if QT_BINDING == "PyQt6":
+        from PyQt6.QtSvg import QSvgRenderer
+    else:
+        from PySide6.QtSvg import QSvgRenderer
+except ImportError:
+    QSvgRenderer = None
+
 # Widgets
 QWidget = QtWidgets.QWidget
 QApplication = QtWidgets.QApplication
@@ -62,7 +70,7 @@ __all__ = [
     "QT_BINDING", "Signal", "Slot", "QtCore", "QtGui", "QtWidgets",
     "Qt", "QTimer", "QPoint", "QPointF", "QRect", "QRectF", "QSize", "QObject",
     "QColor", "QFont", "QPainter", "QPainterPath", "QCursor", "QIcon", "QBrush", "QPen",
-    "QLinearGradient", "QRadialGradient", "QAction", "QActionGroup",
+    "QLinearGradient", "QRadialGradient", "QAction", "QActionGroup", "QSvgRenderer",
     "QWidget", "QApplication", "QLineEdit", "QPushButton", "QMenu",
     "QInputDialog", "QMessageBox", "QSystemTrayIcon", "QStyle"
 ]

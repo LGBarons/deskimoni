@@ -464,6 +464,20 @@ class DeskimonMenuMixin:
         act_gohome_folder.triggered.connect(self.open_gohome_folder)
         chatter_menu.addAction(act_gohome_folder)
 
+        # 12b. Begleiter & Freunde
+        friends_menu = menu.addMenu("👥 Begleiter & Freunde")
+        crow_running = self.is_jothecrow_running()
+        crow_label = "🐦‍⬛ Jo the Crow schlafen legen" if crow_running else "🐦‍⬛ Jo the Crow rufen (Slang-Übersetzerin)"
+        act_crow = QAction(crow_label, self)
+        act_crow.triggered.connect(self.toggle_jothecrow)
+        friends_menu.addAction(act_crow)
+
+        mouse_running = self.is_norskmus_running()
+        mouse_label = "🐭 NorskMus schlafen legen" if mouse_running else "🐭 NorskMus rufen (Mauszeiger-Fänger)"
+        act_mouse = QAction(mouse_label, self)
+        act_mouse.triggered.connect(self.toggle_norskmus)
+        friends_menu.addAction(act_mouse)
+
         menu.addSeparator()
 
         # 13. Größe & Verhalten
