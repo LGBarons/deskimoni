@@ -335,7 +335,11 @@ class JoTheCrowWidget(QWidget):
             payload = {
                 "contents": [{"role": "user", "parts": [{"text": f"Transformiere diesen Text in den Vibe '{target_vibe['label']}':\n\n{user_text}"}]}],
                 "system_instruction": {"parts": [{"text": system_prompt}]},
-                "generationConfig": {"temperature": 0.8, "maxOutputTokens": 200},
+                "generationConfig": {
+                    "temperature": 0.8,
+                    "maxOutputTokens": 800,
+                    "thinkingConfig": {"thinkingBudget": 0}
+                },
             }
             for model_name in models_to_try:
                 try:
@@ -347,7 +351,7 @@ class JoTheCrowWidget(QWidget):
                         if candidates:
                             parts = candidates[0].get("content", {}).get("parts", [])
                             if parts:
-                                reply = "".join(p.get("text", "") for p in parts).strip()
+                                reply = "".join(p.get("text", "") for p in parts if not p.get("thought", False)).strip()
                                 if reply:
                                     break
                     else:

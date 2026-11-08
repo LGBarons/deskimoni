@@ -422,7 +422,8 @@ class DeskimonAiMixin:
             "contents": contents,
             "generationConfig": {
                 "temperature": 0.7,
-                "maxOutputTokens": 130,
+                "maxOutputTokens": 800,
+                "thinkingConfig": {"thinkingBudget": 0},
             },
         }
         headers = {
@@ -444,7 +445,7 @@ class DeskimonAiMixin:
                 cands = data.get("candidates", [])
                 if cands:
                     parts = cands[0].get("content", {}).get("parts", [])
-                    return "".join(p.get("text", "") for p in parts).strip()
+                    return "".join(p.get("text", "") for p in parts if not p.get("thought", False)).strip()
         except Exception:
             pass
         return ""

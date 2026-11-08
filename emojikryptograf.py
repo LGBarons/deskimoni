@@ -81,6 +81,7 @@ class EmojiKryptografWidget(QWidget):
 
         # Sound & Sprache
         self.signals = WorkerSignals()
+        self.signals.reply_ready.connect(lambda reply, mode_str: self._on_result_ready(reply, mode_str, getattr(self, "last_user_text", "")))
         self.sound = RobotSoundEngine(self.signals)
         self.sound.set_voice_profile("cute_bot")
 
@@ -411,6 +412,7 @@ class EmojiKryptografWidget(QWidget):
         text = self.input_field.text().strip()
         if not text or self.is_thinking:
             return
+        self.last_user_text = text
         self.is_thinking = True
         self.trigger_bounce(6.0)
         self.sound.play_chirp("curious")
@@ -473,7 +475,11 @@ class EmojiKryptografWidget(QWidget):
             payload = {
                 "contents": [{"role": "user", "parts": [{"text": user_prompt}]}],
                 "system_instruction": {"parts": [{"text": system_prompt}]},
-                "generationConfig": {"temperature": 0.7, "maxOutputTokens": 200},
+                "generationConfig": {
+                    "temperature": 0.7,
+                    "maxOutputTokens": 800,
+                    "thinkingConfig": {"thinkingBudget": 0}
+                },
             }
             for model_name in models_to_try:
                 try:
@@ -485,7 +491,7 @@ class EmojiKryptografWidget(QWidget):
                         if candidates:
                             parts = candidates[0].get("content", {}).get("parts", [])
                             if parts:
-                                reply = "".join(p.get("text", "") for p in parts).strip()
+                                reply = "".join(p.get("text", "") for p in parts if not p.get("thought", False)).strip()
                                 if reply:
                                     break
                     else:
@@ -514,7 +520,8 @@ class EmojiKryptografWidget(QWidget):
         if not reply:
             reply = self._offline_fallback(user_text, current_mode)
 
-        QTimer.singleShot(0, self, lambda: self._on_result_ready(reply, current_mode, user_text))
+        # Thread-sichere UI-Aktualisierung via Qt Signal
+        self.signals.reply_ready.emit(reply, current_mode)
 
     def _offline_fallback(self, text: str, mode: str) -> str:
         low = text.lower()
