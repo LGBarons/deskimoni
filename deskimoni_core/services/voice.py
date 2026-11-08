@@ -328,7 +328,11 @@ class DeskimonVoiceMixin:
             self.start_cursor_search_now()
             return True
 
-        # Begleiter / Sidekicks (Jo the Crow & NorskMus)
+        # Begleiter / Sidekicks (Emoji-Kryptograf, Jo the Crow & NorskMus)
+        if any(w in low for w in ("emoji kryptograf", "emoji übersetzer", "emoji dolmetscher", "satz in emoji", "satz in emojis", "hol die emojis", "ruf den emoji")):
+            self.toggle_emoji()
+            return True
+
         if any(w in low for w in ("jo the crow", "jothecrow", "ruf jo", "hol die krähe", "slang übersetzer", "slang übersetzerin", "krähe rufen", "krähe holen")):
             self.toggle_jothecrow()
             return True

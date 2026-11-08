@@ -466,6 +466,12 @@ class DeskimonMenuMixin:
 
         # 12b. Begleiter & Freunde
         friends_menu = menu.addMenu("👥 Begleiter & Freunde")
+        emoji_running = self.is_emoji_running()
+        emoji_label = "🔮 Emoji-Kryptograf schlafen legen" if emoji_running else "🔮 Emoji-Kryptograf & Dolmetscher (Satz ➔ Emojis)"
+        act_emoji = QAction(emoji_label, self)
+        act_emoji.triggered.connect(self.toggle_emoji)
+        friends_menu.addAction(act_emoji)
+
         crow_running = self.is_jothecrow_running()
         crow_label = "🐦‍⬛ Jo the Crow schlafen legen" if crow_running else "🐦‍⬛ Jo the Crow rufen (Slang-Übersetzerin)"
         act_crow = QAction(crow_label, self)

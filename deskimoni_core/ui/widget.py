@@ -211,6 +211,7 @@ class DeskimonWidget(
         self.drag_offset = QPointF(0, 0)
         self.norskmus_proc = None
         self.jothecrow_proc = None
+        self.emoji_proc = None
 
         # Bauch-Button Timer (Einzelklick vs Doppelklick)
         self.belly_click_timer = QTimer(self)
@@ -871,6 +872,35 @@ class DeskimonWidget(
                 self.sound.play_chirp("love")
             except Exception as e:
                 self.show_bubble(f"⚠️ Konnte Jo the Crow nicht starten: {e}", 4.0)
+
+    def is_emoji_running(self) -> bool:
+        return self.emoji_proc is not None and self.emoji_proc.poll() is None
+
+    def toggle_emoji(self):
+        if self.is_emoji_running():
+            try:
+                self.emoji_proc.terminate()
+                self.emoji_proc = None
+            except Exception:
+                pass
+            self.show_bubble("🔮 Emoji-Kryptograf schläft jetzt! ✨", 3.0)
+            self.sound.play_chirp("happy")
+        else:
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            script_sh = os.path.join(base_dir, "run_emoji.sh")
+            script_bat = os.path.join(base_dir, "start_emoji_windows.bat")
+            script_py = os.path.join(base_dir, "emojikryptograf.py")
+            try:
+                if sys.platform.startswith("win") and os.path.exists(script_bat):
+                    self.emoji_proc = subprocess.Popen([script_bat], shell=True)
+                elif os.path.exists(script_sh) and os.access(script_sh, os.X_OK):
+                    self.emoji_proc = subprocess.Popen([script_sh])
+                else:
+                    self.emoji_proc = subprocess.Popen([sys.executable, script_py])
+                self.show_bubble("🔮 Emoji-Kryptograf ist aktiv! ✨", 3.5)
+                self.sound.play_chirp("love")
+            except Exception as e:
+                self.show_bubble(f"⚠️ Konnte Emoji-Kryptograf nicht starten: {e}", 4.0)
 
     def toggle_cursor_finder(self):
         self.cursor_finder_enabled = not self.cursor_finder_enabled
