@@ -22,6 +22,7 @@ from deskimoni_core.qt import (
     QPushButton, QMenu, QInputDialog, QMessageBox
 )
 from deskimoni_core.audio.sound_engine import RobotSoundEngine
+from deskimoni_core.signals import WorkerSignals
 
 
 EMOJI_CATEGORIES = [
@@ -79,7 +80,8 @@ class EmojiKryptografWidget(QWidget):
         self.active_category_idx = 0
 
         # Sound & Sprache
-        self.sound = RobotSoundEngine()
+        self.signals = WorkerSignals()
+        self.sound = RobotSoundEngine(self.signals)
         self.sound.set_voice_profile("cute_bot")
 
         # Status & Animation
@@ -122,6 +124,21 @@ class EmojiKryptografWidget(QWidget):
         except Exception:
             pass
         return ""
+
+    def save_gemini_key(self, key: str):
+        self.gemini_api_key = key.strip()
+        config_path = os.path.expanduser("~/.config/deskimoni/settings.json")
+        try:
+            os.makedirs(os.path.dirname(config_path), exist_ok=True)
+            data = {}
+            if os.path.exists(config_path):
+                with open(config_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            data["gemini_api_key"] = self.gemini_api_key
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"[EmojiKryptograf] Fehler beim Speichern des API-Keys: {e}")
 
     def setup_ui(self):
         flags = Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint
@@ -440,23 +457,35 @@ class EmojiKryptografWidget(QWidget):
         reply = ""
         # 1. Google Gemini API
         if self.gemini_api_key:
-            try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={self.gemini_api_key}"
-                payload = {
-                    "contents": [{"parts": [{"text": user_prompt}]}],
-                    "systemInstruction": {"parts": [{"text": system_prompt}]},
-                    "generationConfig": {"temperature": 0.7, "maxOutputTokens": 200},
-                }
-                res = requests.post(url, json=payload, timeout=9.0)
-                if res.status_code == 200:
-                    data = res.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        parts = candidates[0].get("content", {}).get("parts", [])
-                        if parts:
-                            reply = parts[0].get("text", "").strip()
-            except Exception:
-                reply = ""
+            models_to_try = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-3.8-flash"]
+            session = requests.Session()
+            session.trust_env = False
+            headers = {
+                "x-goog-api-key": self.gemini_api_key,
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "contents": [{"parts": [{"text": user_prompt}]}],
+                "systemInstruction": {"parts": [{"text": system_prompt}]},
+                "generationConfig": {"temperature": 0.7, "maxOutputTokens": 200},
+            }
+            for model_name in models_to_try:
+                try:
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
+                    res = session.post(url, json=payload, headers=headers, timeout=9.0)
+                    if res.status_code == 200:
+                        data = res.json()
+                        candidates = data.get("candidates", [])
+                        if candidates:
+                            parts = candidates[0].get("content", {}).get("parts", [])
+                            if parts:
+                                reply = parts[0].get("text", "").strip()
+                                if reply:
+                                    break
+                    else:
+                        print(f"[EmojiKryptograf] Gemini ({model_name}) HTTP {res.status_code}: {res.text[:100]}")
+                except Exception as e:
+                    print(f"[EmojiKryptograf] Gemini ({model_name}) Exception: {e}")
 
         # 2. Lokales Ollama
         if not reply:
@@ -479,7 +508,7 @@ class EmojiKryptografWidget(QWidget):
         if not reply:
             reply = self._offline_fallback(user_text, current_mode)
 
-        QTimer.singleShot(0, lambda: self._on_result_ready(reply, current_mode, user_text))
+        QTimer.singleShot(0, self, lambda: self._on_result_ready(reply, current_mode, user_text))
 
     def _offline_fallback(self, text: str, mode: str) -> str:
         low = text.lower()
@@ -760,8 +789,9 @@ class EmojiKryptografWidget(QWidget):
         def _set_key():
             k, ok = QInputDialog.getText(self, "API-Key", "Google Gemini API-Key:", text=self.gemini_api_key)
             if ok:
-                self.gemini_api_key = k.strip()
-                self.show_bubble("API-Key aktualisiert! ✨", 3.0)
+                self.save_gemini_key(k)
+                self.show_bubble("API-Key gespeichert & aktiv! ✨", 3.5)
+                self.sound.play_chirp("happy")
         act_key.triggered.connect(_set_key)
         menu.addAction(act_key)
 

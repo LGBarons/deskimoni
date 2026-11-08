@@ -122,8 +122,9 @@ class JoTheCrowWidget(QWidget):
         super().__init__()
 
         self.signals = WorkerSignals()
+        self.signals.reply_ready.connect(self._on_translation_ready)
         self.sound = RobotSoundEngine(self.signals)
-        self.sound.set_voice_profile("de-katja")  # Junge, sympathische Frauenstimme für Jo
+        self.sound.set_voice_profile("katja_warm")  # Junge, sympathische Frauenstimme für Jo
 
         # Fenster-Eigenschaften
         self.scale_factor = 1.0
@@ -172,6 +173,21 @@ class JoTheCrowWidget(QWidget):
                     self.gemini_api_key = key
         except Exception:
             pass
+
+    def save_gemini_key_to_settings(self, key: str):
+        self.gemini_api_key = key.strip()
+        settings_path = os.path.expanduser("~/.config/deskimoni/settings.json")
+        try:
+            os.makedirs(os.path.dirname(settings_path), exist_ok=True)
+            data = {}
+            if os.path.exists(settings_path):
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+            data["gemini_api_key"] = self.gemini_api_key
+            with open(settings_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"[JoTheCrow] Fehler beim Speichern des API-Keys: {e}")
 
     def setup_ui(self):
         flags = Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool | Qt.WindowType.WindowStaysOnTopHint
@@ -303,23 +319,35 @@ class JoTheCrowWidget(QWidget):
         reply = ""
         # 1. Google Gemini API versuchen
         if self.gemini_api_key:
-            try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={self.gemini_api_key}"
-                payload = {
-                    "contents": [{"parts": [{"text": f"Transformiere diesen Text in den Vibe '{target_vibe['label']}':\n\n{user_text}"}]}],
-                    "systemInstruction": {"parts": [{"text": system_prompt}]},
-                    "generationConfig": {"temperature": 0.8, "maxOutputTokens": 200},
-                }
-                res = requests.post(url, json=payload, timeout=9.0)
-                if res.status_code == 200:
-                    data = res.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        parts = candidates[0].get("content", {}).get("parts", [])
-                        if parts:
-                            reply = parts[0].get("text", "").strip()
-            except Exception:
-                reply = ""
+            models_to_try = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-3.8-flash"]
+            session = requests.Session()
+            session.trust_env = False
+            headers = {
+                "x-goog-api-key": self.gemini_api_key,
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "contents": [{"parts": [{"text": f"Transformiere diesen Text in den Vibe '{target_vibe['label']}':\n\n{user_text}"}]}],
+                "systemInstruction": {"parts": [{"text": system_prompt}]},
+                "generationConfig": {"temperature": 0.8, "maxOutputTokens": 200},
+            }
+            for model_name in models_to_try:
+                try:
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
+                    res = session.post(url, json=payload, headers=headers, timeout=9.0)
+                    if res.status_code == 200:
+                        data = res.json()
+                        candidates = data.get("candidates", [])
+                        if candidates:
+                            parts = candidates[0].get("content", {}).get("parts", [])
+                            if parts:
+                                reply = parts[0].get("text", "").strip()
+                                if reply:
+                                    break
+                    else:
+                        print(f"[JoTheCrow] Gemini ({model_name}) HTTP {res.status_code}: {res.text[:100]}")
+                except Exception as e:
+                    print(f"[JoTheCrow] Gemini ({model_name}) Exception: {e}")
 
         # 2. Lokales Ollama als Fallback
         if not reply:
@@ -341,7 +369,7 @@ class JoTheCrowWidget(QWidget):
         # 3. Witziger Offline-Fallback, falls weder Gemini noch Ollama aktiv ist
         if not reply:
             if target_vibe["id"] == "JUGEND":
-                reply = f"Bro, ohne Internet bin ich lost! Aber {user_text} ist lowkey übelst goated, no cap! 🐦‍⬛"
+                reply = f"Bro, ohne Internet bin ich lost! Aber '{user_text}' ist lowkey übelst goated, no cap! 🐦‍⬛"
             elif target_vibe["id"] == "FIRMEN_JARGON":
                 reply = f"Lassen Sie uns bezüglich '{user_text}' asynchron ein alignment herstellen und die Synergien hebeln!"
             elif target_vibe["id"] == "PIRAT":
@@ -351,8 +379,8 @@ class JoTheCrowWidget(QWidget):
             else:
                 reply = f"Yo! {user_text} (im {target_vibe['label']}-Vibe)!"
 
-        # UI & Sprache im Haupt-Thread
-        QTimer.singleShot(0, lambda: self._on_translation_ready(reply, target_vibe["icon"]))
+        # Thread-sichere UI- & Sprach-Aktualisierung via Qt-Signal
+        self.signals.reply_ready.emit(reply, target_vibe["icon"])
 
     def _on_translation_ready(self, reply: str, icon: str):
         self.is_thinking = False
@@ -515,8 +543,9 @@ class JoTheCrowWidget(QWidget):
         def _set_key():
             k, ok = QInputDialog.getText(self, "API-Key", "Google Gemini API-Key:", text=self.gemini_api_key)
             if ok:
-                self.gemini_api_key = k.strip()
-                self.show_bubble("API-Key aktualisiert! ✨", 3.0)
+                self.save_gemini_key_to_settings(k)
+                self.show_bubble("API-Key gespeichert & aktiv! ✨", 3.5)
+                self.sound.play_chirp("happy")
         act_key.triggered.connect(_set_key)
         menu.addAction(act_key)
 
