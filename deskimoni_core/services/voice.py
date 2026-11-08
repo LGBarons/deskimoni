@@ -92,11 +92,15 @@ class DeskimonVoiceMixin:
                 self.toggle_roaming()
             return True
 
-        if any(w in low for w in ("bleib stehen", "stopp", "sitz", "nicht laufen", "halt an")):
+        if any(w in low for w in ("bleib stehen", "stopp", "sitz", "nicht laufen", "halt an", "sitz still", "still sitzen", "bleib still")):
+            was_dancing = getattr(self, "is_dancing", False)
             if self.roaming_enabled:
                 self.toggle_roaming()
             else:
                 self.has_manual_walk_target = False
+            if was_dancing:
+                self.mark_current_not_music()
+            else:
                 self.on_ai_reply("Ich sitze doch schon ganz brav still!", "happy")
             return True
 

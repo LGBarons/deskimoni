@@ -1529,7 +1529,8 @@ class DeskimonWidget(
                 pass
             self.update_mpris_metadata()
 
-        if (self.music_playing or self.radio_playing) and random.random() < 0.035:
+        # Wenn er tanzt, steigen ab und zu Musiknoten auf!
+        if getattr(self, "is_dancing", False) and random.random() < 0.035:
             self.spawn_particle("note")
 
         if self.radio_proc and self.radio_proc.poll() is not None:
